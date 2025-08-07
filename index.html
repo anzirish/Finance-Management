@@ -246,6 +246,28 @@
         outline: none;
         font-size: 1rem;
       }
+
+      .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .transactions-table th,
+      .transactions-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--card-border);
+      }
+
+      .transactions-table th {
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .transactions-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      
     </style>
   </head>
   <body>
@@ -278,9 +300,7 @@
       <button class="nav-tab" data-tab="transactions">
         <span>💳</span> Transactions
       </button>
-      <button class="nav-tab" data-tab="budget">
-        <span>📊</span> Budget
-      </button>
+      <button class="nav-tab" data-tab="budget"><span>📊</span> Budget</button>
       <button class="nav-tab" data-tab="savings">
         <span>🎯</span> Savings Goals
       </button>
@@ -318,6 +338,38 @@
           <div class="stat-label">Monthly Budget</div>
         </div>
       </div>
+
+      <!-- Transactions Table -->
+      <section class="card">
+        <h2 style="margin-bottom: 1rem">Recent Transactions</h2>
+        <table class="transactions-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Amount</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Salary</td>
+              <td class="transaction-income">₹50,000</td>
+              <td>Income</td>
+              <td>Job</td>
+              <td>2025-08-01</td>
+            </tr>
+            <tr>
+              <td>Groceries</td>
+              <td class="transaction-expense">₹2,500</td>
+              <td>Expense</td>
+              <td>Food</td>
+              <td>2025-08-05</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </main>
 
     <!-- Modal -->

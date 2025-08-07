@@ -270,20 +270,19 @@
       }
 
       .action-btn {
-  background: none;
-  border: none;
-  color: var(--danger-color);
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  transition: background 0.2s ease;
-}
+        background: none;
+        border: none;
+        color: var(--danger-color);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        transition: background 0.2s ease;
+      }
 
-.action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
+      .action-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -369,7 +368,7 @@
               <th>Actions</th>
             </tr>
           </thead>
-          
+
           <tbody></tbody>
         </table>
       </section>
@@ -412,6 +411,8 @@
       const openModalBtn = document.getElementById("openModal");
       const modal = document.getElementById("transactionModal");
       const transactionForm = modal.querySelector("form");
+      let editIndex = null;
+
       const transactionsTableBody = document.querySelector(
         ".transactions-table tbody"
       );
@@ -420,42 +421,63 @@
       updateDashboardTotals();
 
       transactionsTableBody.addEventListener("click", (e) => {
-  if (e.target.classList.contains("action-btn")) {
-    const index = parseInt(e.target.getAttribute("data-index"), 10);
+        if (e.target.classList.contains("delete-btn")) {
+          const index = parseInt(e.target.getAttribute("data-index"), 10);
 
-    // Remove from array
-    transactions.splice(index, 1);
+          transactions.splice(index, 1);
+          localStorage.setItem("transactions", JSON.stringify(transactions));
 
-    // Save to localStorage
-    localStorage.setItem("transactions", JSON.stringify(transactions));
+          renderTransactions();
+          updateDashboardTotals();
+        }
 
-    // Re-render table & totals
-    renderTransactions();
-    updateDashboardTotals();
-  }
-});
+        if (e.target.classList.contains("edit-btn")) {
+          editIndex = parseInt(e.target.getAttribute("data-index"), 10);
+          const t = transactions[editIndex];
 
-function renderTransactions() {
-  transactionsTableBody.innerHTML = "";
-  transactions.forEach((t, i) => addTransactionRow(t, i));
-}
+          transactionForm.querySelectorAll('input[type="text"]')[0].value =
+            t.title;
+          transactionForm.querySelector('input[type="number"]').value =
+            t.amount;
+          transactionForm.querySelector("select").value = t.type;
+          transactionForm.querySelectorAll('input[type="text"]')[1].value =
+            t.category;
+          transactionForm.querySelector('input[type="date"]').value = t.date;
 
+          modal.classList.add("active");
+          transactionForm.querySelector('input[type="text"]').focus();
+        }
+      });
+
+      function renderTransactions() {
+        transactionsTableBody.innerHTML = "";
+        transactions.forEach((t, i) => addTransactionRow(t, i));
+      }
 
       function addTransactionRow(transaction, index) {
-  const row = document.createElement("tr");
-  row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
     <td>${transaction.title}</td>
-    <td class="${transaction.type === "income" ? "transaction-income" : "transaction-expense"}">
+    <td class="${
+      transaction.type === "income"
+        ? "transaction-income"
+        : "transaction-expense"
+    }">
       ₹${parseFloat(transaction.amount).toLocaleString()}
     </td>
-    <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+    <td>${
+      transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)
+    }</td>
     <td>${transaction.category || "-"}</td>
     <td>${transaction.date}</td>
-    <td><button class="action-btn" data-index="${index}">🗑️</button></td>
-  `;
-  transactionsTableBody.appendChild(row);
-}
+    <td>
+  <button class="action-btn edit-btn" data-index="${index}">✏️</button>
+  <button class="action-btn delete-btn" data-index="${index}">🗑️</button>
+</td>
 
+  `;
+        transactionsTableBody.appendChild(row);
+      }
 
       function updateDashboardTotals() {
         let totalIncome = 0;
@@ -504,10 +526,15 @@ function renderTransactions() {
 
         const transaction = { title, amount, type, category, date };
 
-        transactions.push(transaction);
-        localStorage.setItem("transactions", JSON.stringify(transactions));
+        if (editIndex !== null) {
+          transactions[editIndex] = transaction;
+          editIndex = null;
+        } else {
+          transactions.push(transaction);
+        }
 
-        addTransactionRow(transaction);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        renderTransactions();
         updateDashboardTotals();
 
         transactionForm.reset();
@@ -532,7 +559,6 @@ function renderTransactions() {
       });
 
       renderTransactions();
-
     </script>
   </body>
 </html>

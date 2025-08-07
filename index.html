@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Finance Dashboard</title>
 
-    <!-- Google Font -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -71,7 +70,6 @@
         gap: 0.5rem;
         font-size: 1.5rem;
         font-weight: bold;
-        color: var(--text-primary);
       }
 
       .balance-display {
@@ -150,6 +148,56 @@
         color: white;
         box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
       }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .card {
+        background: var(--card-background);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+      }
+
+      .stat-card {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .transaction-income {
+        color: var(--success-color);
+      }
+
+      .transaction-expense {
+        color: var(--danger-color);
+      }
     </style>
   </head>
   <body>
@@ -174,7 +222,7 @@
       </div>
     </header>
 
-    <!-- Navigation Tabs -->
+    <!-- Tabs -->
     <nav class="nav-tabs">
       <button class="nav-tab active" data-tab="dashboard">
         <span>🏠</span> Dashboard
@@ -201,5 +249,27 @@
         <span>⚙️</span> Settings
       </button>
     </nav>
+
+    <!-- Dashboard Summary -->
+    <main class="container">
+      <div class="dashboard-grid">
+        <div class="card stat-card">
+          <div class="stat-value transaction-income">₹0</div>
+          <div class="stat-label">Total Income</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value transaction-expense">₹0</div>
+          <div class="stat-label">Total Expenses</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" style="color: var(--success-color)">₹0</div>
+          <div class="stat-label">Total Savings</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-value" style="color: var(--warning-color)">₹0</div>
+          <div class="stat-label">Monthly Budget</div>
+        </div>
+      </div>
+    </main>
   </body>
 </html>

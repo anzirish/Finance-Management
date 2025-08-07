@@ -117,9 +117,43 @@
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
       }
+
+      /* Tabs */
+      .nav-tabs {
+        display: flex;
+        gap: 0.5rem;
+        padding: 1rem 2rem 0;
+        overflow-x: auto;
+      }
+
+      .nav-tab {
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .nav-tab:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .nav-tab.active {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      }
     </style>
   </head>
   <body>
+    <!-- Header -->
     <header class="header">
       <div class="header-content">
         <div class="logo">
@@ -139,5 +173,33 @@
         </div>
       </div>
     </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="dashboard">
+        <span>🏠</span> Dashboard
+      </button>
+      <button class="nav-tab" data-tab="transactions">
+        <span>💳</span> Transactions
+      </button>
+      <button class="nav-tab" data-tab="budget">
+        <span>📊</span> Budget
+      </button>
+      <button class="nav-tab" data-tab="savings">
+        <span>🎯</span> Savings Goals
+      </button>
+      <button class="nav-tab" data-tab="bills">
+        <span>📅</span> Bills & Reminders
+      </button>
+      <button class="nav-tab" data-tab="investments">
+        <span>📈</span> Investments
+      </button>
+      <button class="nav-tab" data-tab="reports">
+        <span>📋</span> Reports
+      </button>
+      <button class="nav-tab" data-tab="settings">
+        <span>⚙️</span> Settings
+      </button>
+    </nav>
   </body>
 </html>

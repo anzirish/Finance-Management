@@ -267,7 +267,6 @@
       .transactions-table tbody tr:hover {
         background: rgba(255, 255, 255, 0.05);
       }
-      
     </style>
   </head>
   <body>
@@ -423,6 +422,47 @@
         if (e.key === "Escape") {
           modal.classList.remove("active");
         }
+      });
+
+      const transactionForm = modal.querySelector("form");
+      const transactionsTableBody = document.querySelector(
+        ".transactions-table tbody"
+      );
+
+      transactionForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        // Get form values
+        const title = transactionForm
+          .querySelector('input[type="text"]')
+          .value.trim();
+        const amount = parseFloat(
+          transactionForm.querySelector('input[type="number"]').value
+        );
+        const type = transactionForm.querySelector("select").value;
+        const category = transactionForm
+          .querySelectorAll('input[type="text"]')[1]
+          .value.trim();
+        const date = transactionForm.querySelector('input[type="date"]').value;
+
+        // Create new row
+        const row = document.createElement("tr");
+        row.innerHTML = `
+    <td>${title}</td>
+    <td class="${
+      type === "income" ? "transaction-income" : "transaction-expense"
+    }">₹${amount.toLocaleString()}</td>
+    <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+    <td>${category || "-"}</td>
+    <td>${date}</td>
+  `;
+
+        // Add row to table
+        transactionsTableBody.appendChild(row);
+
+        // Reset and close modal
+        transactionForm.reset();
+        modal.classList.remove("active");
       });
     </script>
   </body>

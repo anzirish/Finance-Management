@@ -300,9 +300,7 @@
       <button class="nav-tab" data-tab="transactions">
         <span>💳</span> Transactions
       </button>
-      <button class="nav-tab" data-tab="budget">
-        <span>📊</span> Budget
-      </button>
+      <button class="nav-tab" data-tab="budget"><span>📊</span> Budget</button>
       <button class="nav-tab" data-tab="savings">
         <span>🎯</span> Savings Goals
       </button>
@@ -343,7 +341,7 @@
 
       <!-- Transactions Table -->
       <section class="card">
-        <h2 style="margin-bottom: 1rem;">Recent Transactions</h2>
+        <h2 style="margin-bottom: 1rem">Recent Transactions</h2>
         <table class="transactions-table">
           <thead>
             <tr>
@@ -396,31 +394,76 @@
       const openModalBtn = document.getElementById("openModal");
       const modal = document.getElementById("transactionModal");
       const transactionForm = modal.querySelector("form");
-      const transactionsTableBody = document.querySelector(".transactions-table tbody");
+      const transactionsTableBody = document.querySelector(
+        ".transactions-table tbody"
+      );
 
       let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+      updateDashboardTotals();
 
       function addTransactionRow(transaction) {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${transaction.title}</td>
-          <td class="${transaction.type === "income" ? "transaction-income" : "transaction-expense"}">
+          <td class="${
+            transaction.type === "income"
+              ? "transaction-income"
+              : "transaction-expense"
+          }">
             ₹${parseFloat(transaction.amount).toLocaleString()}
           </td>
-          <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+          <td>${
+            transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)
+          }</td>
           <td>${transaction.category || "-"}</td>
           <td>${transaction.date}</td>
         `;
         transactionsTableBody.appendChild(row);
       }
 
+      function updateDashboardTotals() {
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        transactions.forEach((t) => {
+          if (t.type === "income") {
+            totalIncome += parseFloat(t.amount);
+          } else if (t.type === "expense") {
+            totalExpense += parseFloat(t.amount);
+          }
+        });
+
+        const totalBalance = totalIncome - totalExpense;
+        const totalSavings = totalBalance; // Here: savings = balance (can change logic later)
+
+        // Update UI
+        document.querySelectorAll(
+          ".stat-card .stat-value"
+        )[0].textContent = `₹${totalIncome.toLocaleString()}`;
+        document.querySelectorAll(
+          ".stat-card .stat-value"
+        )[1].textContent = `₹${totalExpense.toLocaleString()}`;
+        document.querySelectorAll(
+          ".stat-card .stat-value"
+        )[2].textContent = `₹${totalSavings.toLocaleString()}`;
+        document.querySelector(
+          ".balance-amount"
+        ).textContent = `₹${totalBalance.toLocaleString()}`;
+      }
+
       transactionForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        const title = transactionForm.querySelectorAll('input[type="text"]')[0].value.trim();
-        const amount = parseFloat(transactionForm.querySelector('input[type="number"]').value);
+        const title = transactionForm
+          .querySelectorAll('input[type="text"]')[0]
+          .value.trim();
+        const amount = parseFloat(
+          transactionForm.querySelector('input[type="number"]').value
+        );
         const type = transactionForm.querySelector("select").value;
-        const category = transactionForm.querySelectorAll('input[type="text"]')[1].value.trim();
+        const category = transactionForm
+          .querySelectorAll('input[type="text"]')[1]
+          .value.trim();
         const date = transactionForm.querySelector('input[type="date"]').value;
 
         const transaction = { title, amount, type, category, date };
@@ -429,6 +472,7 @@
         localStorage.setItem("transactions", JSON.stringify(transactions));
 
         addTransactionRow(transaction);
+        updateDashboardTotals();
 
         transactionForm.reset();
         modal.classList.remove("active");

@@ -247,6 +247,7 @@
         font-size: 1rem;
       }
 
+      /* Transactions Table */
       .transactions-table {
         width: 100%;
         border-collapse: collapse;
@@ -299,7 +300,9 @@
       <button class="nav-tab" data-tab="transactions">
         <span>💳</span> Transactions
       </button>
-      <button class="nav-tab" data-tab="budget"><span>📊</span> Budget</button>
+      <button class="nav-tab" data-tab="budget">
+        <span>📊</span> Budget
+      </button>
       <button class="nav-tab" data-tab="savings">
         <span>🎯</span> Savings Goals
       </button>
@@ -340,7 +343,7 @@
 
       <!-- Transactions Table -->
       <section class="card">
-        <h2 style="margin-bottom: 1rem">Recent Transactions</h2>
+        <h2 style="margin-bottom: 1rem;">Recent Transactions</h2>
         <table class="transactions-table">
           <thead>
             <tr>
@@ -351,22 +354,7 @@
               <th>Date</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Salary</td>
-              <td class="transaction-income">₹50,000</td>
-              <td>Income</td>
-              <td>Job</td>
-              <td>2025-08-01</td>
-            </tr>
-            <tr>
-              <td>Groceries</td>
-              <td class="transaction-expense">₹2,500</td>
-              <td>Expense</td>
-              <td>Food</td>
-              <td>2025-08-05</td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </section>
     </main>
@@ -407,9 +395,48 @@
     <script>
       const openModalBtn = document.getElementById("openModal");
       const modal = document.getElementById("transactionModal");
+      const transactionForm = modal.querySelector("form");
+      const transactionsTableBody = document.querySelector(".transactions-table tbody");
+
+      let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+
+      function addTransactionRow(transaction) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${transaction.title}</td>
+          <td class="${transaction.type === "income" ? "transaction-income" : "transaction-expense"}">
+            ₹${parseFloat(transaction.amount).toLocaleString()}
+          </td>
+          <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+          <td>${transaction.category || "-"}</td>
+          <td>${transaction.date}</td>
+        `;
+        transactionsTableBody.appendChild(row);
+      }
+
+      transactionForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const title = transactionForm.querySelectorAll('input[type="text"]')[0].value.trim();
+        const amount = parseFloat(transactionForm.querySelector('input[type="number"]').value);
+        const type = transactionForm.querySelector("select").value;
+        const category = transactionForm.querySelectorAll('input[type="text"]')[1].value.trim();
+        const date = transactionForm.querySelector('input[type="date"]').value;
+
+        const transaction = { title, amount, type, category, date };
+
+        transactions.push(transaction);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+
+        addTransactionRow(transaction);
+
+        transactionForm.reset();
+        modal.classList.remove("active");
+      });
 
       openModalBtn.addEventListener("click", () => {
         modal.classList.add("active");
+        transactionForm.querySelector('input[type="text"]').focus();
       });
 
       modal.addEventListener("click", (e) => {
@@ -424,46 +451,7 @@
         }
       });
 
-      const transactionForm = modal.querySelector("form");
-      const transactionsTableBody = document.querySelector(
-        ".transactions-table tbody"
-      );
-
-      transactionForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        // Get form values
-        const title = transactionForm
-          .querySelector('input[type="text"]')
-          .value.trim();
-        const amount = parseFloat(
-          transactionForm.querySelector('input[type="number"]').value
-        );
-        const type = transactionForm.querySelector("select").value;
-        const category = transactionForm
-          .querySelectorAll('input[type="text"]')[1]
-          .value.trim();
-        const date = transactionForm.querySelector('input[type="date"]').value;
-
-        // Create new row
-        const row = document.createElement("tr");
-        row.innerHTML = `
-    <td>${title}</td>
-    <td class="${
-      type === "income" ? "transaction-income" : "transaction-expense"
-    }">₹${amount.toLocaleString()}</td>
-    <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
-    <td>${category || "-"}</td>
-    <td>${date}</td>
-  `;
-
-        // Add row to table
-        transactionsTableBody.appendChild(row);
-
-        // Reset and close modal
-        transactionForm.reset();
-        modal.classList.remove("active");
-      });
+      transactions.forEach(addTransactionRow);
     </script>
   </body>
 </html>

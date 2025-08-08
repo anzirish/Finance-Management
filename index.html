@@ -268,6 +268,22 @@
       .transactions-table tbody tr:hover {
         background: rgba(255, 255, 255, 0.05);
       }
+
+      .action-btn {
+  background: none;
+  border: none;
+  color: var(--danger-color);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
     </style>
   </head>
   <body>
@@ -350,8 +366,10 @@
               <th>Type</th>
               <th>Category</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
+          
           <tbody></tbody>
         </table>
       </section>
@@ -401,25 +419,43 @@
       let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
       updateDashboardTotals();
 
-      function addTransactionRow(transaction) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${transaction.title}</td>
-          <td class="${
-            transaction.type === "income"
-              ? "transaction-income"
-              : "transaction-expense"
-          }">
-            ₹${parseFloat(transaction.amount).toLocaleString()}
-          </td>
-          <td>${
-            transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)
-          }</td>
-          <td>${transaction.category || "-"}</td>
-          <td>${transaction.date}</td>
-        `;
-        transactionsTableBody.appendChild(row);
-      }
+      transactionsTableBody.addEventListener("click", (e) => {
+  if (e.target.classList.contains("action-btn")) {
+    const index = parseInt(e.target.getAttribute("data-index"), 10);
+
+    // Remove from array
+    transactions.splice(index, 1);
+
+    // Save to localStorage
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+
+    // Re-render table & totals
+    renderTransactions();
+    updateDashboardTotals();
+  }
+});
+
+function renderTransactions() {
+  transactionsTableBody.innerHTML = "";
+  transactions.forEach((t, i) => addTransactionRow(t, i));
+}
+
+
+      function addTransactionRow(transaction, index) {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${transaction.title}</td>
+    <td class="${transaction.type === "income" ? "transaction-income" : "transaction-expense"}">
+      ₹${parseFloat(transaction.amount).toLocaleString()}
+    </td>
+    <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+    <td>${transaction.category || "-"}</td>
+    <td>${transaction.date}</td>
+    <td><button class="action-btn" data-index="${index}">🗑️</button></td>
+  `;
+  transactionsTableBody.appendChild(row);
+}
+
 
       function updateDashboardTotals() {
         let totalIncome = 0;
@@ -495,7 +531,8 @@
         }
       });
 
-      transactions.forEach(addTransactionRow);
+      renderTransactions();
+
     </script>
   </body>
 </html>

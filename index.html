@@ -56,6 +56,25 @@
         z-index: 100;
       }
 
+      .category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: white;
+      }
+
+      .category-income {
+        background: var(--success-color);
+      }
+
+      .category-expense {
+        background: var(--danger-color);
+      }
+
       .header-content {
         display: flex;
         justify-content: space-between;
@@ -412,47 +431,83 @@
       const modal = document.getElementById("transactionModal");
       const transactionForm = modal.querySelector("form");
       let editIndex = null;
+      let activeCategoryFilter = null;
 
       const transactionsTableBody = document.querySelector(
         ".transactions-table tbody"
       );
 
+      function getCategoryIcon(category) {
+        const icons = {
+          salary: "💼",
+          food: "🍔",
+          rent: "🏠",
+          travel: "✈️",
+          shopping: "🛍️",
+          entertainment: "🎬",
+          other: "📦",
+        };
+
+        const key = category ? category.toLowerCase() : "other";
+        return icons[key] || icons.other;
+      }
+
       let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
       updateDashboardTotals();
 
-      transactionsTableBody.addEventListener("click", (e) => {
-        if (e.target.classList.contains("delete-btn")) {
-          const index = parseInt(e.target.getAttribute("data-index"), 10);
-
-          transactions.splice(index, 1);
-          localStorage.setItem("transactions", JSON.stringify(transactions));
-
-          renderTransactions();
-          updateDashboardTotals();
-        }
-
-        if (e.target.classList.contains("edit-btn")) {
-          editIndex = parseInt(e.target.getAttribute("data-index"), 10);
-          const t = transactions[editIndex];
-
-          transactionForm.querySelectorAll('input[type="text"]')[0].value =
-            t.title;
-          transactionForm.querySelector('input[type="number"]').value =
-            t.amount;
-          transactionForm.querySelector("select").value = t.type;
-          transactionForm.querySelectorAll('input[type="text"]')[1].value =
-            t.category;
-          transactionForm.querySelector('input[type="date"]').value = t.date;
-
-          modal.classList.add("active");
-          transactionForm.querySelector('input[type="text"]').focus();
-        }
-      });
-
+      // Unified click handler for edit / delete / category filter
       function renderTransactions() {
         transactionsTableBody.innerHTML = "";
-        transactions.forEach((t, i) => addTransactionRow(t, i));
+        transactions.forEach((t, i) => {
+          if (
+            !activeCategoryFilter ||
+            (t.category || "").trim().toLowerCase() ===
+              activeCategoryFilter.toLowerCase()
+          ) {
+            addTransactionRow(t, i); // index is only for edit/delete
+          }
+        });
       }
+
+      // Edit/Delete handler
+      transactionsTableBody.addEventListener("click", (e) => {
+        const deleteBtn = e.target.closest(".delete-btn");
+        const editBtn = e.target.closest(".edit-btn");
+        const tag = e.target.closest(".category-tag");
+
+        // DELETE
+        if (deleteBtn) {
+          const index = parseInt(deleteBtn.getAttribute("data-index"), 10);
+          if (!isNaN(index)) {
+            transactions.splice(index, 1);
+            localStorage.setItem("transactions", JSON.stringify(transactions));
+            renderTransactions();
+            updateDashboardTotals();
+          }
+          return;
+        }
+
+        // EDIT
+        if (editBtn) {
+          const index = parseInt(editBtn.getAttribute("data-index"), 10);
+          if (!isNaN(index)) {
+            editIndex = index;
+            const t = transactions[editIndex] || {};
+            transactionForm.querySelectorAll('input[type="text"]')[0].value =
+              t.title || "";
+            transactionForm.querySelector('input[type="number"]').value =
+              t.amount || "";
+            transactionForm.querySelector("select").value = t.type || "expense";
+            transactionForm.querySelectorAll('input[type="text"]')[1].value =
+              t.category || "";
+            transactionForm.querySelector('input[type="date"]').value =
+              t.date || "";
+            modal.classList.add("active");
+            transactionForm.querySelector('input[type="text"]').focus();
+          }
+          return;
+        }
+      });
 
       function addTransactionRow(transaction, index) {
         const row = document.createElement("tr");
@@ -468,13 +523,20 @@
     <td>${
       transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)
     }</td>
-    <td>${transaction.category || "-"}</td>
+    <td>
+      <span class="category-tag category-${transaction.type}" data-category="${
+          transaction.category
+        }">
+        ${getCategoryIcon(transaction.category)} ${
+          transaction.category || "Other"
+        }
+      </span>
+    </td>
     <td>${transaction.date}</td>
     <td>
-  <button class="action-btn edit-btn" data-index="${index}">✏️</button>
-  <button class="action-btn delete-btn" data-index="${index}">🗑️</button>
-</td>
-
+      <button class="action-btn edit-btn" data-index="${index}">✏️</button>
+      <button class="action-btn delete-btn" data-index="${index}">🗑️</button>
+    </td>
   `;
         transactionsTableBody.appendChild(row);
       }
@@ -559,6 +621,7 @@
       });
 
       renderTransactions();
+      updateDashboardTotals();
     </script>
   </body>
 </html>

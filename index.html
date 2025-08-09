@@ -2,97 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Finance Dashboard — Enhanced Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Finance Dashboard — Dashboard + Transactions + Budget</title>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
+      /* === Core from your second file (kept UI) === */
       * { margin:0; padding:0; box-sizing:border-box; }
       :root{
-        --bg: linear-gradient(135deg,#667eea,#764ba2);
-        --card:#1e1e2f;
-        --muted:#cbd5e1;
-        --accent:#2b49cd;
-        --success:#17f50c;
-        --danger:#fb0404;
-        --glass: rgba(255, 255, 255, 0.04);
-        --radius:12px;
+        --primary-color:#2b49cd;
+        --text-secondary:#cbd5e1;
+        --card-bg: rgba(255,255,255,0.04);
+        --card-border: rgba(255,255,255,0.06);
+        --shadow: 0 8px 30px rgba(0,0,0,0.45);
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --muted: #9aa6b2;
+        --glass-bg: #1e1e2f;
       }
       body{
-        font-family: Inter, system-ui, sans-serif;
-        min-height:100vh;
-        background:var(--bg);
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background: linear-gradient(135deg,#667eea,#764ba2);
         color:#fff;
-        padding-bottom:40px;
+        min-height:100vh;
+        -webkit-font-smoothing:antialiased;
       }
 
       /* Header */
       .header{
-        background:var(--glass);
-        margin:16px;
-        padding:14px 18px;
-        border-radius:14px;
-        backdrop-filter: blur(8px);
+        background: var(--card-bg);
+        margin: 16px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
         display:flex;
         align-items:center;
         justify-content:space-between;
         gap:12px;
+        border:1px solid var(--card-border);
+        box-shadow: var(--shadow);
       }
-      .logo{display:flex; align-items:center; gap:8px; font-weight:700;}
-      .balance-display { text-align:center; padding:8px 14px; background: rgba(255,255,255,0.03); border-radius:10px; }
+      .logo{ display:flex; align-items:center; gap:8px; font-weight:700; }
+      .balance-display { text-align:center; padding:8px 14px; background: rgba(255,255,255,0.02); border-radius:10px; }
       .balance-amount { font-weight:700; color:var(--success); }
 
-      .btn{ background:var(--accent); border:none; padding:8px 12px; border-radius:10px; cursor:pointer; color:#fff; }
-      .btn-sm{ padding:6px 10px; font-size:0.9rem; }
+      .btn { background:var(--primary-color); border:none; padding:8px 12px; border-radius:10px; cursor:pointer; color:#fff; }
+      .btn-sm { padding:6px 10px; font-size:0.9rem; }
 
       /* Tabs */
-      .nav-tabs{ display:flex; gap:8px; padding:10px 18px; overflow:auto; margin:0 16px; }
-      .nav-tab{ background:rgba(255,255,255,0.03); color:var(--muted); border:none; padding:8px 12px; border-radius:10px; cursor:pointer; display:flex; gap:8px; align-items:center;}
-      .nav-tab.active{ background:var(--accent); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.35); transform:translateY(-2px); }
+      .nav-tabs{ display:flex; gap:8px; padding:10px 18px; overflow:auto; margin: 0 16px; }
+      .nav-tab{ background:rgba(255,255,255,0.03); color:var(--text-secondary); border:none; padding:8px 12px; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+      .nav-tab.active{ background:var(--primary-color); color:#fff; box-shadow: 0 6px 18px rgba(0,0,0,0.35); transform:translateY(-2px); }
 
-      /* Container */
       .container{ max-width:1200px; margin:18px auto; padding:0 16px; }
 
-      /* Dashboard grid & cards */
       .dashboard-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-bottom:18px; }
-      .card{ background:var(--card); padding:14px; border-radius:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+      .card{ background: var(--glass-bg); padding:14px; border-radius:12px; box-shadow: var(--shadow); border:1px solid var(--card-border); }
       .stat-card { text-align:center; }
       .stat-value{ font-size:1.6rem; font-weight:700; margin-bottom:6px; }
       .stat-label{ color:var(--muted); font-size:0.9rem; }
 
-      /* Charts */
       .chart-container{ height:260px; margin-top:8px; }
 
-      /* Transactions table */
-      .transactions-table{ width:100%; border-collapse:collapse; margin-top:8px; }
-      .transactions-table th, .transactions-table td{ padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--muted); font-size:0.95rem; }
+      .transactions-table{ width:100%; border-collapse:collapse; margin-top:12px; }
+      .transactions-table th, .transactions-table td{ padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03); color:var(--text-secondary); font-size:0.95rem; }
       .transactions-table td .amount { font-weight:700; color:#fff; }
       .transaction-income{ color:var(--success); }
       .transaction-expense{ color:var(--danger); }
 
-      /* Recent Transactions list */
       .recent-list{ display:flex; flex-direction:column; gap:8px; margin-top:8px; }
       .recent-item{ display:flex; align-items:center; gap:12px; padding:8px; border-radius:10px; background: rgba(255,255,255,0.02); }
       .cat-icon{ width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; background:rgba(255,255,255,0.03); }
       .recent-info{ flex:1; }
       .recent-title{ font-weight:600; margin-bottom:4px; }
-      .recent-meta{ color:var(--muted); font-size:0.9rem; }
+      .recent-meta{ color:var(--text-secondary); font-size:0.9rem; }
 
-      /* Modal */
-      .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:999; }
+      .modal{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999; }
       .modal.active{ display:flex; }
-      .modal-content{ width:420px; max-width:94%; background:#11111a; padding:16px; border-radius:12px; }
-      .modal-content form{ display:flex; flex-direction:column; gap:8px; }
+      .modal-content{ background: var(--glass-bg); padding:18px; border-radius:12px; box-shadow:var(--shadow); width:420px; max-width:94%; border:1px solid var(--card-border); }
+      .modal-content h3{ margin-bottom:12px; }
+      .modal-content form{ display:flex; flex-direction:column; gap:10px; }
       .form-input, .form-select{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#fff; }
 
-      /* action buttons */
-      .action-btn{ background:none; border:none; cursor:pointer; color:var(--muted); padding:6px; border-radius:8px; }
+      .action-btn{ background:none; border:none; cursor:pointer; color:var(--text-secondary); padding:6px; border-radius:8px; }
       .action-btn:hover{ background: rgba(255,255,255,0.02); color:#fff; }
 
+      /* Budget specific */
+      .progress { width:100%; height:12px; background: rgba(255,255,255,0.04); border-radius:8px; overflow:hidden; }
+      .progress-fill { height:100%; width:0%; background:var(--success); transition: width 0.4s ease; }
+
       @media (max-width:640px){
-        .header{ flex-direction:column; align-items:stretch; gap:12px;}
+        .header{ flex-direction:column; align-items:stretch; gap:12px; }
         .nav-tabs{ padding-left:8px; padding-right:8px; }
       }
     </style>
@@ -100,13 +103,10 @@
 
   <body>
     <header class="header">
-      <div class="logo">
-        <span>💰</span>
-        <div>Finance Dashboard</div>
-      </div>
+      <div class="logo"><span>💰</span><div>Finance Dashboard</div></div>
 
       <div class="balance-display">
-        <div style="font-size:0.85rem; color:var(--muted)">Total Balance</div>
+        <div style="font-size:0.85rem; color:var(--text-secondary)">Total Balance</div>
         <div class="balance-amount" id="totalBalance">₹0</div>
       </div>
 
@@ -143,7 +143,7 @@
             <div class="stat-label">Total Savings</div>
           </div>
           <div class="card stat-card">
-            <div class="stat-value" id="monthlyBudget" style="color:var(--muted)">₹0</div>
+            <div class="stat-value" id="monthlyBudget" style="color:var(--text-secondary)">₹0</div>
             <div class="stat-label">Monthly Budget</div>
           </div>
         </div>
@@ -182,7 +182,7 @@
               <h3 style="font-size:1rem;">📅 Upcoming Bills</h3>
               <button class="btn btn-sm" onclick="switchTab('bills')">Manage</button>
             </div>
-            <div id="upcomingBills" style="margin-top:8px; color:var(--muted);">No upcoming bills</div>
+            <div id="upcomingBills" style="margin-top:8px; color:var(--text-secondary);">No upcoming bills</div>
           </div>
         </div>
       </section>
@@ -223,33 +223,44 @@
         </div>
       </section>
 
-      <!-- simple placeholders for other tabs -->
+      <!-- BUDGET -->
       <section id="budget-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Budget — coming soon</h3></div>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Budget (Expense categories)</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button id="openBudgetListBtn" class="btn btn-sm">Set Budget</button>
+            </div>
+          </div>
+
+          <table class="transactions-table" style="margin-top:12px;">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Budget</th>
+                <th>Spent (this month)</th>
+                <th>Remaining</th>
+                <th>Usage</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="budgetTableBody"></tbody>
+          </table>
+          <div style="margin-top:10px; color:var(--text-secondary); font-size:0.95rem;">
+            Notes: Budgets are expense-only and calculated for the current month.
+          </div>
+        </div>
       </section>
 
-      <section id="savings-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Savings — coming soon</h3></div>
-      </section>
-
-      <section id="bills-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Bills & Reminders — coming soon</h3></div>
-      </section>
-
-      <section id="investments-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Investments — coming soon</h3></div>
-      </section>
-
-      <section id="reports-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Reports — coming soon</h3></div>
-      </section>
-
-      <section id="settings-tab" class="tab-content" style="display:none;">
-        <div class="card"><h3>Settings — coming soon</h3></div>
-      </section>
+      <!-- Placeholder tabs to keep layout consistent -->
+      <section id="savings-tab" class="tab-content" style="display:none;"><div class="card"><h3>Savings — coming soon</h3></div></section>
+      <section id="bills-tab" class="tab-content" style="display:none;"><div class="card"><h3>Bills & Reminders — coming soon</h3></div></section>
+      <section id="investments-tab" class="tab-content" style="display:none;"><div class="card"><h3>Investments — coming soon</h3></div></section>
+      <section id="reports-tab" class="tab-content" style="display:none;"><div class="card"><h3>Reports — coming soon</h3></div></section>
+      <section id="settings-tab" class="tab-content" style="display:none;"><div class="card"><h3>Settings — coming soon</h3></div></section>
     </main>
 
-    <!-- Modal for add / edit transaction -->
+    <!-- Transaction Modal (kept same style as your second file) -->
     <div id="transactionModal" class="modal" aria-hidden="true">
       <div class="modal-content">
         <h3 id="modalTitle">Add Transaction</h3>
@@ -270,10 +281,48 @@
       </div>
     </div>
 
+    <!-- Budget Modal (matches transaction modal style) -->
+    <div id="budgetModal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <h3 id="budgetModalTitle">Set Budget</h3>
+        <form id="budgetForm">
+          <label style="color:var(--text-secondary)">Category</label>
+          <select id="budgetCategory" class="form-select" required>
+            <option value="food">Food</option>
+            <option value="travel">Travel</option>
+            <option value="shopping">Shopping</option>
+            <option value="rent">Rent</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="other">Other</option>
+          </select>
+          <label style="color:var(--text-secondary)">Monthly Budget Amount</label>
+          <input type="number" id="budgetAmount" class="form-input" placeholder="e.g., 5000" step="0.01" min="0" required />
+          <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+            <button type="button" class="btn" id="cancelBudgetBtn">Cancel</button>
+            <button type="submit" class="btn btn-sm" id="saveBudgetBtn">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
-      // -------------------------
-      // Simple categories -> icon map
-      // -------------------------
+      /*******************
+       * App state & DOM refs
+       *******************/
+      // Data keys
+      const TX_KEY = 'transactions'; // same as your second file usage
+      const BUD_KEY = 'budgets';
+
+      // Load or initialize
+      let transactions = JSON.parse(localStorage.getItem(TX_KEY) || '[]');
+      // budgets stored as array of {category: 'food', amount: number}
+      let budgets = JSON.parse(localStorage.getItem(BUD_KEY) || '[]');
+
+      // Editing index state
+      let editIndex = null;
+      let editingBudgetCategory = null;
+
+      // Category icons map (keeps your simple mapping)
       const categoryIcons = {
         salary: "💼",
         food: "🍔",
@@ -284,13 +333,7 @@
         other: "📦",
       };
 
-      // -------------------------
-      // App state
-      // -------------------------
-      let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-      let editIndex = null;
-
-      // DOM refs
+      // DOM
       const tabs = document.querySelectorAll('.nav-tab');
       const tabContents = document.querySelectorAll('.tab-content');
       const openModalBtn = document.getElementById('openModal');
@@ -299,24 +342,32 @@
       const transactionForm = document.getElementById('transactionForm');
       const transactionsTableBody = document.getElementById('transactionsTableBody');
       const recentTransactionsEl = document.getElementById('recentTransactions');
-      const upcomingBillsEl = document.getElementById('upcomingBills');
       const totalBalanceEl = document.getElementById('totalBalance');
       const totalIncomeEl = document.getElementById('totalIncome');
       const totalExpensesEl = document.getElementById('totalExpenses');
       const totalSavingsEl = document.getElementById('totalSavings');
       const monthlyBudgetEl = document.getElementById('monthlyBudget');
+      const monthlyChartEl = document.getElementById('monthlyChart');
+      const categoryChartEl = document.getElementById('categoryChart');
       const categoryFilter = document.getElementById('categoryFilter');
 
-      // Charts
-      let monthlyChart = null;
-      let categoryChart = null;
+      // Budget DOM
+      const budgetTabBtn = document.querySelector('.nav-tab[data-tab="budget"]');
+      const budgetModal = document.getElementById('budgetModal');
+      const budgetForm = document.getElementById('budgetForm');
+      const budgetCategoryInput = document.getElementById('budgetCategory');
+      const budgetAmountInput = document.getElementById('budgetAmount');
+      const budgetTableBody = document.getElementById('budgetTableBody');
+      const openBudgetListBtn = document.getElementById('openBudgetListBtn');
 
-      // -------------------------
-      // Utility helpers
-      // -------------------------
-      function saveTransactions() {
-        localStorage.setItem('transactions', JSON.stringify(transactions));
-      }
+      // Charts
+      let monthlyChart = null, categoryChart = null;
+
+      /*******************
+       * Helpers
+       *******************/
+      function saveTransactions(){ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }
+      function saveBudgets(){ localStorage.setItem(BUD_KEY, JSON.stringify(budgets)); }
 
       function formatCurrency(val){
         const n = Number(val) || 0;
@@ -329,9 +380,7 @@
         return categoryIcons[key] || categoryIcons.other;
       }
 
-      // -------------------------
-      // Tab switching
-      // -------------------------
+      // Tabs switching (keeps your existing behaviour)
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelector('.nav-tab.active').classList.remove('active');
@@ -344,19 +393,20 @@
         tabContents.forEach(tc => tc.style.display = 'none');
         const target = document.getElementById(tabName + '-tab');
         if(target) target.style.display = 'block';
-        // if switching to dashboard, update charts
-        if(tabName === 'dashboard') {
-          updateDashboard();
-        }
+        if(tabName === 'dashboard') updateDashboard();
+        if(tabName === 'budget') renderBudgets();
       }
 
-      // -------------------------
-      // Render transactions table + recent list
-      // -------------------------
+      // Initial tab
+      // ----------------
+
+      /*******************
+       * Transactions Render + CRUD
+       *******************/
       function renderTransactions(){
         transactionsTableBody.innerHTML = '';
         const filter = categoryFilter.value?.toLowerCase() || '';
-        transactions.forEach((t, i) => {
+        transactions.forEach((t,i) => {
           if(filter && (t.category||'').toLowerCase() !== filter) return;
           const tr = document.createElement('tr');
           const amtClass = t.type === 'income' ? 'transaction-income' : 'transaction-expense';
@@ -375,198 +425,21 @@
         });
       }
 
-      function renderRecentTransactions(){
-        recentTransactionsEl.innerHTML = '';
-        // show last 6 transactions in reverse chronological (by date if provided, else by order)
-        const sorted = [...transactions].sort((a,b) => {
-          if(a.date && b.date) return new Date(b.date) - new Date(a.date);
-          return 0;
-        }).slice(0,6);
-        if(sorted.length === 0){
-          recentTransactionsEl.innerHTML = '<div style="color:var(--muted)">No recent transactions</div>';
-          return;
-        }
-        sorted.forEach((t,i) => {
-          const item = document.createElement('div');
-          item.className = 'recent-item';
-          item.innerHTML = `
-            <div class="cat-icon">${iconFor(t.category)}</div>
-            <div class="recent-info">
-              <div class="recent-title">${t.title || '—'} <span style="font-weight:600; margin-left:8px;" class="${t.type==='income'?'transaction-income':'transaction-expense'}">${formatCurrency(t.amount)}</span></div>
-              <div class="recent-meta">${t.category || 'Other'} • ${t.date || ''}</div>
-            </div>
-            <div style="display:flex; gap:6px;">
-              <button class="action-btn small-edit" data-title="${t.title||''}" data-index="${transactions.indexOf(t)}">✏️</button>
-              <button class="action-btn small-delete" data-index="${transactions.indexOf(t)}">🗑️</button>
-            </div>
-          `;
-          recentTransactionsEl.appendChild(item);
-        });
-      }
-
-      // -------------------------
-      // Dashboard totals & charts
-      // -------------------------
-      function updateDashboard(){
-        // totals
-        let totalIncome = 0, totalExpenses = 0;
-        transactions.forEach(t => {
-          const amt = Number(t.amount) || 0;
-          if(t.type === 'income') totalIncome += amt;
-          else totalExpenses += amt;
-        });
-        const totalBalance = totalIncome - totalExpenses;
-        const totalSavings = totalBalance; // simple mapping for now
-
-        totalIncomeEl.textContent = formatCurrency(totalIncome);
-        totalExpensesEl.textContent = formatCurrency(totalExpenses);
-        totalSavingsEl.textContent = formatCurrency(totalSavings);
-        totalBalanceEl.textContent = formatCurrency(totalBalance);
-        monthlyBudgetEl.textContent = formatCurrency(0); // placeholder
-
-        // charts
-        renderMonthlyChart();
-        renderCategoryChart();
-
-        // recent & upcoming
-        renderRecentTransactions();
-        renderUpcomingBills(); // placeholder (no bills implemented yet)
-      }
-
-      // Monthly chart aggregates (show recent 6 months)
-      function renderMonthlyChart(){
-        // aggregate amounts per month-year (use month of transaction date; income positive, expense negative for display)
-        const map = {}; // key: YYYY-MM
-        transactions.forEach(t => {
-          if(!t.date) return;
-          const d = new Date(t.date);
-          if(isNaN(d)) return;
-          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-          const amt = Number(t.amount) || 0;
-          map[key] = (map[key] || 0) + (t.type==='income' ? amt : -amt);
-        });
-        // pick last 6 months keys (ensure in chronological order)
-        const now = new Date();
-        const keys = [];
-        for(let i=5;i>=0;i--){
-          const dt = new Date(now.getFullYear(), now.getMonth()-i, 1);
-          const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-          keys.push(key);
-        }
-        const labels = keys.map(k => {
-          const [y,m] = k.split('-');
-          return `${m}/${y.slice(-2)}`;
-        });
-        const data = keys.map(k => Math.round((map[k] || 0) * 100)/100);
-
-        // create/update chart
-        const ctx = document.getElementById('monthlyChart').getContext('2d');
-        if(monthlyChart) {
-          monthlyChart.data.labels = labels;
-          monthlyChart.data.datasets[0].data = data;
-          monthlyChart.update();
-        } else {
-          monthlyChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels,
-              datasets: [{
-                label: 'Net cashflow',
-                data,
-                fill: true,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 3,
-              }]
-            },
-            options: {
-              responsive:true,
-              maintainAspectRatio:false,
-              plugins:{
-                legend:{ display:false },
-                tooltip:{ callbacks: { label: ctx => formatCurrency(ctx.raw) } }
-              },
-              scales:{
-                x: { grid: { display:false }, ticks:{ color:'#cbd5e1' } },
-                y: { ticks:{ color:'#cbd5e1', callback: v => '₹'+v }, grid:{ color:'transparent' } }
-              }
-            }
-          });
-        }
-      }
-
-      // Category chart: show expense categories breakdown
-      function renderCategoryChart(){
-        const counts = {}; // amount per category (only expenses)
-        transactions.forEach(t=>{
-          if(t.type !== 'expense') return;
-          const c = (t.category || 'Other').toLowerCase();
-          counts[c] = (counts[c] || 0) + (Number(t.amount)||0);
-        });
-        const labels = Object.keys(counts);
-        const dataVals = labels.map(l => Math.round(counts[l]*100)/100);
-
-        const ctx = document.getElementById('categoryChart').getContext('2d');
-        if(categoryChart){
-          categoryChart.data.labels = labels;
-          categoryChart.data.datasets[0].data = dataVals;
-          categoryChart.update();
-        } else {
-          categoryChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-              labels,
-              datasets:[{ data:dataVals }]
-            },
-            options:{
-              responsive:true,
-              maintainAspectRatio:false,
-              plugins:{ legend:{ position:'bottom', labels:{ color:'#cbd5e1' } } }
-            }
-          });
-        }
-      }
-
-      // Upcoming bills placeholder
-      function renderUpcomingBills(){
-        // we don't yet have bills stored — placeholder logic
-        upcomingBillsEl.textContent = 'No upcoming bills';
-      }
-
-      // -------------------------
-      // Add / Edit / Delete transactions
-      // -------------------------
-      function openModal(forEdit=false){
-        transactionModal.classList.add('active');
-        document.getElementById('modalTitle').textContent = forEdit ? 'Edit Transaction' : 'Add Transaction';
-      }
-      function closeModal(){
-        transactionModal.classList.remove('active');
-        transactionForm.reset();
-        editIndex = null;
-      }
-
-      openModalBtn.addEventListener('click', () => { editIndex=null; openModal(false); });
-      addTransactionBtn.addEventListener('click', () => { editIndex=null; openModal(false); });
-
-      // table actions (edit/delete)
+      // table action listeners
       transactionsTableBody.addEventListener('click', (e) => {
         const del = e.target.closest('.delete-btn');
         const edit = e.target.closest('.edit-btn');
         if(del){
           const idx = Number(del.dataset.index);
-          if(!isNaN(idx)) {
-            if(confirm('Delete this transaction?')) {
-              transactions.splice(idx,1);
-              saveTransactions();
-              renderAll();
-            }
+          if(!isNaN(idx) && confirm('Delete this transaction?')){
+            transactions.splice(idx,1);
+            saveTransactions();
+            renderAll();
           }
-          return;
         }
         if(edit){
           const idx = Number(edit.dataset.index);
-          if(!isNaN(idx)) {
+          if(!isNaN(idx)){
             editIndex = idx;
             const t = transactions[idx];
             document.getElementById('tTitle').value = t.title || '';
@@ -574,12 +447,12 @@
             document.getElementById('tType').value = t.type || 'expense';
             document.getElementById('tCategory').value = t.category || '';
             document.getElementById('tDate').value = t.date || '';
-            openModal(true);
+            openTransactionModal(true);
           }
         }
       });
 
-      // recent list small buttons
+      // Recent list small buttons
       recentTransactionsEl.addEventListener('click', (e) => {
         const d = e.target.closest('.small-delete');
         const ed = e.target.closest('.small-edit');
@@ -601,12 +474,27 @@
             document.getElementById('tType').value = t.type || 'expense';
             document.getElementById('tCategory').value = t.category || '';
             document.getElementById('tDate').value = t.date || '';
-            openModal(true);
+            openTransactionModal(true);
           }
         }
       });
 
-      // form submit
+      // Open/close transaction modal
+      openModalBtn.addEventListener('click', ()=>{ editIndex=null; openTransactionModal(false); });
+      addTransactionBtn.addEventListener('click', ()=>{ editIndex=null; openTransactionModal(false); });
+      function openTransactionModal(forEdit=false){
+        transactionModal.classList.add('active');
+        document.getElementById('modalTitle').textContent = forEdit ? 'Edit Transaction' : 'Add Transaction';
+      }
+      function closeTransactionModal(){
+        transactionModal.classList.remove('active');
+        transactionForm.reset();
+        editIndex = null;
+      }
+      document.getElementById('cancelBtn').addEventListener('click', ()=> closeTransactionModal());
+      transactionModal.addEventListener('click', (e)=> { if(e.target === transactionModal) closeTransactionModal(); });
+
+      // Transaction form submit
       transactionForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const title = document.getElementById('tTitle').value.trim();
@@ -623,32 +511,294 @@
           transactions.push(tx);
         }
         saveTransactions();
-        closeModal();
+        closeTransactionModal();
         renderAll();
         switchTab('dashboard');
       });
 
-      document.getElementById('cancelBtn').addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
-
-      // close modal when clicking outside content
-      transactionModal.addEventListener('click', (e)=>{ if(e.target === transactionModal) closeModal(); });
-
-      // category filter change
       categoryFilter.addEventListener('change', ()=> renderTransactions());
 
-      // -------------------------
-      // Initial render & helper
-      // -------------------------
-      function renderAll(){
-        renderTransactions();
+      /*******************
+       * Dashboard totals + Charts
+       *******************/
+      function updateDashboard(){
+        let totalIncome = 0, totalExpenses = 0;
+        transactions.forEach(t => {
+          const amt = Number(t.amount) || 0;
+          if(t.type === 'income') totalIncome += amt;
+          else totalExpenses += amt;
+        });
+        const totalBalance = totalIncome - totalExpenses;
+        const totalSavings = totalBalance;
+
+        totalIncomeEl.textContent = formatCurrency(totalIncome);
+        totalExpensesEl.textContent = formatCurrency(totalExpenses);
+        totalSavingsEl.textContent = formatCurrency(totalSavings);
+        totalBalanceEl.textContent = formatCurrency(totalBalance);
+
+        // monthlyBudget = sum of all budgets
+        const totalBud = budgets.reduce((s,b) => s + (Number(b.amount)||0), 0);
+        monthlyBudgetEl.textContent = formatCurrency(totalBud);
+
+        renderMonthlyChart();
+        renderCategoryChart();
+        renderRecentTransactions();
+      }
+
+      function renderRecentTransactions(){
+        recentTransactionsEl.innerHTML = '';
+        const sorted = [...transactions].sort((a,b) => {
+          if(a.date && b.date) return new Date(b.date) - new Date(a.date);
+          return 0;
+        }).slice(0,6);
+        if(sorted.length === 0){
+          recentTransactionsEl.innerHTML = '<div style="color:var(--text-secondary)">No recent transactions</div>';
+          return;
+        }
+        sorted.forEach((t)=>{
+          const idx = transactions.indexOf(t);
+          const item = document.createElement('div');
+          item.className = 'recent-item';
+          item.innerHTML = `
+            <div class="cat-icon">${iconFor(t.category)}</div>
+            <div class="recent-info">
+              <div class="recent-title">${t.title || '—'} <span style="font-weight:600; margin-left:8px;" class="${t.type==='income'?'transaction-income':'transaction-expense'}">${formatCurrency(t.amount)}</span></div>
+              <div class="recent-meta">${t.category || 'Other'} • ${t.date || ''}</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="action-btn small-edit" data-index="${idx}">✏️</button>
+              <button class="action-btn small-delete" data-index="${idx}">🗑️</button>
+            </div>
+          `;
+          recentTransactionsEl.appendChild(item);
+        });
+      }
+
+      // Monthly Chart
+      function renderMonthlyChart(){
+        const map = {};
+        transactions.forEach(t => {
+          if(!t.date) return;
+          const d = new Date(t.date);
+          if(isNaN(d)) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          const amt = Number(t.amount) || 0;
+          map[key] = (map[key] || 0) + (t.type==='income' ? amt : -amt);
+        });
+        const now = new Date();
+        const keys = [];
+        for(let i=5;i>=0;i--){
+          const dt = new Date(now.getFullYear(), now.getMonth()-i, 1);
+          const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+          keys.push(key);
+        }
+        const labels = keys.map(k => {
+          const [y,m] = k.split('-');
+          return `${m}/${y.slice(-2)}`;
+        });
+        const data = keys.map(k => Math.round((map[k] || 0) * 100)/100);
+
+        const ctx = monthlyChartEl.getContext('2d');
+        if(monthlyChart){
+          monthlyChart.data.labels = labels;
+          monthlyChart.data.datasets[0].data = data;
+          monthlyChart.update();
+        } else {
+          monthlyChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets:[{ label:'Net cashflow', data, fill:true, tension:0.35, borderWidth:2, pointRadius:3 }]},
+            options: {
+              responsive:true, maintainAspectRatio:false,
+              plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => formatCurrency(ctx.raw) } } },
+              scales:{ x:{ grid:{ display:false }, ticks:{ color: 'var(--text-secondary)' } }, y:{ ticks:{ color:'var(--text-secondary)', callback: v => '₹'+v }, grid:{ color:'transparent' } } }
+            }
+          });
+        }
+      }
+
+      // Category Chart (expenses)
+      function renderCategoryChart(){
+        const counts = {};
+        transactions.forEach(t=>{
+          if(t.type !== 'expense') return;
+          const c = (t.category || 'Other').toLowerCase();
+          counts[c] = (counts[c] || 0) + (Number(t.amount)||0);
+        });
+        const labels = Object.keys(counts);
+        const dataVals = labels.map(l => Math.round(counts[l]*100)/100);
+
+        const ctx = categoryChartEl.getContext('2d');
+        if(categoryChart){
+          categoryChart.data.labels = labels;
+          categoryChart.data.datasets[0].data = dataVals;
+          categoryChart.update();
+        } else {
+          categoryChart = new Chart(ctx, {
+            type: 'pie',
+            data: { labels, datasets:[{ data:dataVals }]},
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color: 'var(--text-secondary)' } } } }
+          });
+        }
+      }
+
+      /*******************
+       * Budget: fixed categories + UI + logic
+       *******************/
+      const fixedCategories = ['food','travel','shopping','rent','entertainment','other'];
+
+      function getBudgetFor(category){
+        return budgets.find(b => b.category === category) || null;
+      }
+
+      // Calculate spent for given category for current month
+      function spentThisMonth(category){
+        const now = new Date();
+        const month = now.getMonth(), year = now.getFullYear();
+        return transactions.filter(t=>{
+          if(t.type !== 'expense') return false;
+          const c = (t.category||'').toLowerCase();
+          if(c !== category) return false;
+          const d = new Date(t.date);
+          if(isNaN(d)) return false;
+          return d.getMonth() === month && d.getFullYear() === year;
+        }).reduce((s,t)=> s + (Number(t.amount)||0), 0);
+      }
+
+      // Render budgets table
+      function renderBudgets(){
+        budgetTableBody.innerHTML = '';
+        fixedCategories.forEach(cat => {
+          const bud = getBudgetFor(cat);
+          const budgetAmt = bud ? Number(bud.amount) : 0;
+          const spent = Math.round(spentThisMonth(cat) * 100) / 100;
+          const remaining = Math.round((budgetAmt - spent) * 100) / 100;
+          const percent = budgetAmt ? (spent / budgetAmt) * 100 : 0;
+          let color = getProgressColor(percent);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="color:#fff;">${capitalize(cat)}</td>
+            <td>${formatCurrency(budgetAmt)}</td>
+            <td>${formatCurrency(spent)}</td>
+            <td>${formatCurrency(remaining)}</td>
+            <td>
+              <div class="progress"><div class="progress-fill" style="width:${Math.min(percent,100)}%; background:${color};"></div></div>
+            </td>
+            <td style="text-align:right;">
+              <button class="action-btn edit-budget-btn" data-cat="${cat}">✏️</button>
+              <button class="action-btn delete-budget-btn" data-cat="${cat}">🗑️</button>
+            </td>
+          `;
+          budgetTableBody.appendChild(tr);
+        });
+      }
+
+      function getProgressColor(percent){
+        if(percent > 100) return 'var(--danger)';
+        if(percent >= 70) return 'var(--warning)';
+        return 'var(--success)';
+      }
+
+      function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+      // Open budget modal to add/edit for a category
+      openBudgetListBtn.addEventListener('click', ()=>{
+        // open modal default to first category (food)
+        editingBudgetCategory = null;
+        budgetCategoryInput.value = 'food';
+        budgetAmountInput.value = '';
+        budgetModal.classList.add('active');
+      });
+
+      // Clicking edit / delete in budget table
+      budgetTableBody.addEventListener('click', (e)=>{
+        const editBtn = e.target.closest('.edit-budget-btn');
+        const delBtn = e.target.closest('.delete-budget-btn');
+        if(editBtn){
+          const cat = editBtn.dataset.cat;
+          editingBudgetCategory = cat;
+          budgetCategoryInput.value = cat;
+          const bud = getBudgetFor(cat);
+          budgetAmountInput.value = bud ? bud.amount : '';
+          budgetModal.classList.add('active');
+        }
+        if(delBtn){
+          const cat = delBtn.dataset.cat;
+          if(confirm(`Delete budget for ${capitalize(cat)}?`)){
+            budgets = budgets.filter(b => b.category !== cat);
+            saveBudgets();
+            renderBudgets();
+            updateDashboard();
+          }
+        }
+      });
+
+      // Budget modal close
+      document.getElementById('cancelBudgetBtn').addEventListener('click', ()=> {
+        budgetModal.classList.remove('active');
+        budgetForm.reset();
+        editingBudgetCategory = null;
+      });
+      budgetModal.addEventListener('click', (e)=> { if(e.target === budgetModal) { budgetModal.classList.remove('active'); editingBudgetCategory = null; } });
+
+      // Budget form submit (supports add & edit by category)
+      budgetForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const cat = (budgetCategoryInput.value || '').toLowerCase();
+        const amt = parseFloat(budgetAmountInput.value) || 0;
+        const existing = budgets.find(b => b.category === cat);
+        if(existing){
+          existing.amount = amt;
+        } else {
+          budgets.push({ category: cat, amount: amt });
+        }
+        saveBudgets();
+        budgetModal.classList.remove('active');
+        budgetForm.reset();
+        editingBudgetCategory = null;
+        renderBudgets();
+        updateDashboard();
+        // switch to budget tab to see results
+        switchTab('budget');
+      });
+
+      // Delete budget by category helper (also accessible via delete buttons)
+      function deleteBudget(category){
+        budgets = budgets.filter(b => b.category !== category);
+        saveBudgets();
+        renderBudgets();
         updateDashboard();
       }
 
-      // Initial load
+      /*******************
+       * Global render + init
+       *******************/
+      function renderAll(){
+        renderTransactions();
+        renderBudgets();
+        updateDashboard();
+      }
+
+      // init charts & UI
       renderAll();
 
-      // Expose switchTab globally (used by buttons in markup)
+      // Expose switchTab for markup buttons
       window.switchTab = switchTab;
+
+      // Wire up modal close on outside & Esc (already handled a few places)
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape'){
+          if(transactionModal.classList.contains('active')) closeTransactionModal();
+          if(budgetModal.classList.contains('active')) { budgetModal.classList.remove('active'); editingBudgetCategory = null; }
+        }
+      });
+
+      /*******************
+       * Utility: keep UI in sync when storage changes externally
+       *******************/
+      window.addEventListener('storage', (e)=>{
+        if(e.key === TX_KEY) { transactions = JSON.parse(e.newValue || '[]'); renderAll(); }
+        if(e.key === BUD_KEY) { budgets = JSON.parse(e.newValue || '[]'); renderBudgets(); updateDashboard(); }
+      });
     </script>
   </body>
 </html>

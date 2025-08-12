@@ -1,1331 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Personal Finance Dashboard</title>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      :root {
-        --bg: #0f1724;
-        --card: #0b1220;
-        --muted: #94a3b8;
-        --accent: #06b6d4;
-        --accent-2: #7c3aed;
-        --glass: rgba(255, 255, 255, 0.03);
-      }
-      * {
-        box-sizing: border-box;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-          Roboto, "Helvetica Neue", Arial;
-      }
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        background: linear-gradient(180deg, #071027 0%, #071827 100%);
-        color: #e6eef6;
-      }
-      .app {
-        max-width: 1200px;
-        margin: 28px auto;
-        padding: 20px;
-      }
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 18px;
-      }
-      header h1 {
-        margin: 0;
-        font-size: 20px;
-        letter-spacing: 0.2px;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 360px;
-        gap: 18px;
-      }
-      .card {
-        background: var(--card);
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
-      }
-      .row {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-      .stack {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .controls {
-        display: flex;
-        gap: 8px;
-      }
-      button {
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        border: none;
-        color: #031124;
-        padding: 8px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-      .muted {
-        color: var(--muted);
-        font-size: 13px;
-      }
-      .small {
-        font-size: 13px;
-      }
-      input,
-      select {
-        background: var(--glass);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        padding: 8px;
-        border-radius: 8px;
-        color: inherit;
-      }
-      .acct-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .acct-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.01),
-          transparent
-        );
-        border-radius: 8px;
-      }
-      .chart-wrap {
-        height: 220px;
-      }
-      .list {
-        max-height: 260px;
-        overflow: auto;
-      }
-      .tx {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px;
-        border-radius: 8px;
-      }
-      .tx .meta {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-      .pill {
-        padding: 6px 8px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.1); /* Slightly more opaque */
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #e6eef6; /* Light text color */
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.2s ease;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Finance Dashboard</title>
+  
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header Section -->
+    <header>
+      <div>
+        <h1>Finance Dashboard</h1>
+        <div class="muted">Track income, expenses, budgets & goals in one beautiful place</div>
+      </div>
+      <div class="row controls">
+        <button id="exportBtn">📤 Export</button>
+        <button id="importBtn">📥 Import</button>
+        <input id="fileInput" type="file" accept="application/json" style="display: none" />
+      </div>
+    </header>
 
-      .pill:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
-      }
-
-      .pill.danger {
-        background: #7f1d1d;
-        color: #ffe6e6;
-        border: 1px solid #991b1b;
-      }
-
-      .pill.danger:hover {
-        background: #991b1b;
-      }
-      .progress {
-        height: 10px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 999px;
-        overflow: hidden;
-      }
-      .progress > i {
-        display: block;
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      }
-      .section-title {
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      textarea {
-        min-height: 66px;
-        padding: 8px;
-        border-radius: 8px;
-      }
-      footer {
-        margin-top: 18px;
-        text-align: center;
-        color: var(--muted);
-        font-size: 13px;
-      }
-      .empty {
-        padding: 18px;
-        text-align: center;
-        color: var(--muted);
-      }
-      .tag {
-        padding: 4px 8px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.02);
-      }
-      .danger {
-        background: #7f1d1d;
-        color: #ffe6e6;
-      }
-      .success {
-        background: #052e2e;
-        color: #dbfff9;
-      }
-      .controls-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .top-summary {
-        display: flex;
-        gap: 12px;
-      }
-      .summary-card {
-        flex: 1;
-        padding: 12px;
-        border-radius: 10px;
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.02),
-          transparent
-        );
-      }
-      @media (max-width: 980px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
-        .app {
-          padding: 12px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app">
-      <header>
-        <div>
-          <h1>Personal Finance Dashboard</h1>
-          <div class="muted">
-            Track income, expenses, budgets, goals & more — all in one place
+    <div class="grid">
+      <!-- MAIN COLUMN -->
+      <div class="stack">
+        <!-- Summary Cards -->
+        <div class="card top-summary">
+          <div class="summary-card">
+            <div class="muted small">Net Balance</div>
+            <div id="netBalance" style="font-size: 32px; font-weight: 700; margin: 8px 0;">₹0.00</div>
+            <div class="small">Combined accounts</div>
+          </div>
+          <div class="summary-card">
+            <div class="muted small">Monthly Income</div>
+            <div id="monthlyIncome" style="font-size: 32px; font-weight: 700; margin: 8px 0; color: #10b981;">₹0.00</div>
+            <div class="small">This month</div>
+          </div>
+          <div class="summary-card">
+            <div class="muted small">Monthly Expense</div>
+            <div id="monthlyExpense" style="font-size: 32px; font-weight: 700; margin: 8px 0; color: #ef4444;">₹0.00</div>
+            <div class="small">This month</div>
           </div>
         </div>
-        <div class="row controls">
-          <button id="exportBtn">Export JSON</button>
-          <button id="importBtn">Import JSON</button>
-          <input
-            id="fileInput"
-            type="file"
-            accept="application/json"
-            style="display: none"
-          />
-        </div>
-      </header>
 
-      <div class="grid">
-        <!-- MAIN COLUMN -->
-        <div class="stack">
-          <div class="card top-summary">
-            <div class="summary-card">
-              <div class="muted small">Net Balance</div>
-              <div id="netBalance" style="font-size: 22px; font-weight: 700">
-                ₹0.00
-              </div>
-              <div class="muted small">(Accounts combined)</div>
-            </div>
-            <div class="summary-card">
-              <div class="muted small">Monthly Income</div>
-              <div id="monthlyIncome" style="font-size: 22px; font-weight: 700">
-                ₹0.00
-              </div>
-              <div class="muted small">Estimated this month</div>
-            </div>
-            <div class="summary-card">
-              <div class="muted small">Monthly Expense</div>
-              <div
-                id="monthlyExpense"
-                style="font-size: 22px; font-weight: 700"
-              >
-                ₹0.00
-              </div>
-              <div class="muted small">Estimated this month</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Add Transaction</div>
-            <form id="txForm">
-              <div class="form-grid">
-                <select id="txType">
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
-                <input
-                  id="txAmount"
-                  placeholder="Amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-                <input id="txDate" type="date" />
-                <select id="txAccount"></select>
-                <input
-                  id="txCategory"
-                  placeholder="Category (e.g., groceries)"
-                />
-                <input id="txPayee" placeholder="Payee / Source (optional)" />
-              </div>
-              <div
-                style="
-                  margin-top: 10px;
-                  display: flex;
-                  gap: 8px;
-                  align-items: center;
-                "
-              >
-                <input id="txNote" placeholder="Note (optional)" />
-                <button type="submit">Add</button>
-              </div>
-            </form>
-          </div>
-
-          <div class="card">
-            <div
-              class="row"
-              style="
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 8px;
-              "
-            >
-              <div class="section-title">Transactions</div>
-              <div class="controls-wrap">
-                <select id="filterAccount">
-                  <option value="all">All Accounts</option>
-                </select>
-                <select id="filterType">
-                  <option value="all">All</option>
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                </select>
-                <input id="searchTx" placeholder="Search" />
-                <button id="clearTx">Clear</button>
-              </div>
-            </div>
-            <div class="list" id="txList">
-              <div class="empty">No transactions yet — add one above.</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Charts & Insights</div>
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
-            >
-              <div>
-                <div class="muted small">Income vs Expense (last 6 months)</div>
-                <div class="chart-wrap"><canvas id="ieChart"></canvas></div>
-              </div>
-              <div>
-                <div class="muted small">
-                  Spending by Category (last 6 months)
-                </div>
-                <div class="chart-wrap"><canvas id="catChart"></canvas></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Reports</div>
-            <div class="muted small">
-              Generate a simple monthly or yearly report
-            </div>
-            <div
-              style="
-                display: flex;
-                gap: 8px;
-                margin-top: 10px;
-                align-items: center;
-              "
-            >
-              <select id="reportRange">
-                <option value="monthly">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
+        <!-- Add Transaction Form -->
+        <div class="card">
+          <div class="section-title">➕ Add Transaction</div>
+          <form id="txForm">
+            <div class="form-grid">
+              <select id="txType">
+                <option value="expense">💸 Expense</option>
+                <option value="income">💵 Income</option>
               </select>
-              <button id="genReport">Generate</button>
-              <button id="downloadReport">Download CSV</button>
+              <input id="txAmount" placeholder="Amount" type="number" min="0" step="0.01" required />
+              <input id="txDate" type="date" />
+              <select id="txAccount"></select>
+              <input id="txCategory" placeholder="Category (e.g., groceries)" />
+              <input id="txPayee" placeholder="Payee / Source (optional)" />
             </div>
-            <div id="reportOut" style="margin-top: 12px"></div>
+            <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
+              <input id="txNote" placeholder="Note (optional)" style="flex: 1;" />
+              <button type="submit">Add Transaction</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Transactions List -->
+        <div class="card">
+          <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="section-title" style="margin: 0;">📋 Transactions</div>
+            <div class="controls-wrap">
+              <select id="filterAccount">
+                <option value="all">All Accounts</option>
+              </select>
+              <select id="filterType">
+                <option value="all">All Types</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+              <input id="searchTx" placeholder="🔍 Search..." />
+              <button id="clearTx" class="danger">Clear All</button>
+            </div>
+          </div>
+          <div class="list" id="txList">
+            <div class="empty">No transactions yet — add one above to get started</div>
           </div>
         </div>
 
-        <!-- SIDEBAR -->
-        <aside class="stack">
-          <div class="card">
-            <div class="section-title">Accounts</div>
-            <div class="muted small">
-              Link bank accounts, cards or wallets (local only)
+        <!-- Charts Section -->
+        <div class="card">
+          <div class="section-title">📊 Charts & Insights</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+            <div>
+              <div class="muted small" style="margin-bottom: 8px;">Income vs Expense (6 months)</div>
+              <div class="chart-wrap"><canvas id="ieChart"></canvas></div>
             </div>
-            <div
-              style="
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 8px;
-              "
-            >
-              <input id="newAcctName" placeholder="Account name" />
-              <input
-                id="newAcctBalance"
-                placeholder="Balance"
-                type="number"
-                step="0.01"
-              />
+            <div>
+              <div class="muted small" style="margin-bottom: 8px;">Spending by Category</div>
+              <div class="chart-wrap"><canvas id="catChart"></canvas></div>
             </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px">
-              <button id="addAccount">Add Account</button>
-              <button id="clearAllData" class="danger">Clear All Data</button>
-            </div>
-            <div
-              class="acct-list"
-              id="accountsList"
-              style="margin-top: 12px"
-            ></div>
           </div>
+        </div>
 
-          <div class="card">
-            <div class="section-title">Savings Goals</div>
-            <div class="muted small">Create goals and track progress</div>
-            <div style="display: grid; gap: 8px; margin-top: 8px">
-              <input id="goalName" placeholder="Goal title" />
-              <input
-                id="goalTarget"
-                placeholder="Target amount"
-                type="number"
-                step="0.01"
-              />
-              <div style="display: flex; gap: 8px">
-                <button id="addGoal">Create Goal</button>
-              </div>
-            </div>
-            <div id="goalsList" style="margin-top: 10px"></div>
+        <!-- Reports Section -->
+        <div class="card">
+          <div class="section-title">📈 Reports</div>
+          <div class="muted small">Generate detailed financial reports</div>
+          <div style="display: flex; gap: 10px; margin-top: 16px; align-items: center; flex-wrap: wrap;">
+            <select id="reportRange">
+              <option value="monthly">This Month</option>
+              <option value="quarter">This Quarter</option>
+              <option value="year">This Year</option>
+            </select>
+            <button id="genReport">Generate Report</button>
+            <button id="downloadReport">Download CSV</button>
           </div>
-
-          <div class="card">
-            <div class="section-title">Budgets</div>
-            <div class="muted small">Set monthly budgets per category</div>
-            <div style="display: grid; gap: 8px; margin-top: 8px">
-              <input id="budgetCategory" placeholder="Category" />
-              <input
-                id="budgetAmount"
-                placeholder="Monthly limit"
-                type="number"
-                step="0.01"
-              />
-              <button id="addBudget">Add Budget</button>
-            </div>
-            <div id="budgetsList" style="margin-top: 10px"></div>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Bills & Reminders</div>
-            <div class="muted small">Track due dates and get local alerts</div>
-            <div style="display: grid; gap: 8px; margin-top: 8px">
-              <input id="billName" placeholder="Bill title" />
-              <input
-                id="billAmount"
-                placeholder="Amount"
-                type="number"
-                step="0.01"
-              />
-              <input id="billDue" placeholder="Due date" type="date" />
-              <button id="addBill">Add Bill</button>
-            </div>
-            <div id="billsList" style="margin-top: 10px"></div>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Import / Export</div>
-            <div class="muted small">
-              Export or import your full data (JSON)
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px">
-              <button id="backupBtn">Download Backup</button>
-              <button id="restoreBtn">Restore Backup</button>
-            </div>
-          </div>
-        </aside>
+          <div id="reportOut" style="margin-top: 16px"></div>
+        </div>
       </div>
 
-      <footer>
-        All data is stored locally in your browser's storage. No external
-        servers are used.
-      </footer>
+      <!-- SIDEBAR -->
+      <aside class="stack">
+        <!-- Accounts Section -->
+        <div class="card">
+          <div class="section-title">🏦 Accounts</div>
+          <div class="muted small">Manage your bank accounts and wallets</div>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+            <input id="newAcctName" placeholder="Account name" />
+            <input id="newAcctBalance" placeholder="Initial balance" type="number" step="0.01" />
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 12px">
+            <button id="addAccount">Add Account</button>
+            <button id="clearAllData" class="danger">Clear Data</button>
+          </div>
+          <div class="acct-list" id="accountsList" style="margin-top: 16px"></div>
+        </div>
+
+        <!-- Savings Goals Section -->
+        <div class="card">
+          <div class="section-title">🎯 Savings Goals</div>
+          <div class="muted small">Set goals and track your progress</div>
+          <div style="display: grid; gap: 10px; margin-top: 16px">
+            <input id="goalName" placeholder="Goal title (e.g., Vacation)" />
+            <input id="goalTarget" placeholder="Target amount" type="number" step="0.01" />
+            <button id="addGoal">Create Goal</button>
+          </div>
+          <div id="goalsList" style="margin-top: 16px"></div>
+        </div>
+
+        <!-- Budgets Section -->
+        <div class="card">
+          <div class="section-title">💳 Budgets</div>
+          <div class="muted small">Set monthly spending limits</div>
+          <div style="display: grid; gap: 10px; margin-top: 16px">
+            <input id="budgetCategory" placeholder="Category (e.g., food)" />
+            <input id="budgetAmount" placeholder="Monthly limit" type="number" step="0.01" />
+            <button id="addBudget">Add Budget</button>
+          </div>
+          <div id="budgetsList" style="margin-top: 16px"></div>
+        </div>
+
+        <!-- Bills Section -->
+        <div class="card">
+          <div class="section-title">📅 Bills & Reminders</div>
+          <div class="muted small">Never miss a payment</div>
+          <div style="display: grid; gap: 10px; margin-top: 16px">
+            <input id="billName" placeholder="Bill name" />
+            <input id="billAmount" placeholder="Amount" type="number" step="0.01" />
+            <input id="billDue" placeholder="Due date" type="date" />
+            <button id="addBill">Add Bill</button>
+          </div>
+          <div id="billsList" style="margin-top: 16px"></div>
+        </div>
+      </aside>
     </div>
 
-    <script>
-      /* === Simple local-model finance app === */
-      // Data model stored in localStorage under 'pfd:data'
-      const DB_KEY = "pfd:data:v1";
-
-      const defaultState = {
-        accounts: [],
-        transactions: [],
-        goals: [],
-        budgets: [],
-        bills: [],
-      };
-
-      // helpers
-      const fmt = (n) => {
-        const v = Number(n) || 0;
-        return (
-          "₹" +
-          v.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        );
-      };
-
-      const uid = () =>
-        Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-
-      function readState() {
-        try {
-          const raw = localStorage.getItem(DB_KEY);
-          if (!raw) return JSON.parse(JSON.stringify(defaultState));
-          return JSON.parse(raw);
-        } catch (e) {
-          console.error(e);
-          return JSON.parse(JSON.stringify(defaultState));
-        }
-      }
-      function writeState(s) {
-        localStorage.setItem(DB_KEY, JSON.stringify(s));
-      }
-
-      // initial load
-      let state = readState();
-
-      // elements
-      const txForm = document.getElementById("txForm");
-      const txList = document.getElementById("txList");
-      const txAccount = document.getElementById("txAccount");
-      const filterAccount = document.getElementById("filterAccount");
-      const filterType = document.getElementById("filterType");
-      const searchTx = document.getElementById("searchTx");
-      const netBalance = document.getElementById("netBalance");
-      const monthlyIncome = document.getElementById("monthlyIncome");
-      const monthlyExpense = document.getElementById("monthlyExpense");
-
-      const accountsList = document.getElementById("accountsList");
-      const addAccount = document.getElementById("addAccount");
-      const newAcctName = document.getElementById("newAcctName");
-      const newAcctBalance = document.getElementById("newAcctBalance");
-      const clearAllData = document.getElementById("clearAllData");
-
-      const goalsList = document.getElementById("goalsList");
-      const addGoal = document.getElementById("addGoal");
-      const goalName = document.getElementById("goalName");
-      const goalTarget = document.getElementById("goalTarget");
-
-      const budgetsList = document.getElementById("budgetsList");
-      const addBudget = document.getElementById("addBudget");
-      const budgetCategory = document.getElementById("budgetCategory");
-      const budgetAmount = document.getElementById("budgetAmount");
-
-      const billsList = document.getElementById("billsList");
-      const addBill = document.getElementById("addBill");
-      const billName = document.getElementById("billName");
-      const billAmount = document.getElementById("billAmount");
-      const billDue = document.getElementById("billDue");
-
-      const exportBtn = document.getElementById("exportBtn");
-      const importBtn = document.getElementById("importBtn");
-      const fileInput = document.getElementById("fileInput");
-      const backupBtn = document.getElementById("backupBtn");
-      const restoreBtn = document.getElementById("restoreBtn");
-
-      const ieChartCtx = document.getElementById("ieChart").getContext("2d");
-      const catChartCtx = document.getElementById("catChart").getContext("2d");
-
-      const reportRange = document.getElementById("reportRange");
-      const genReport = document.getElementById("genReport");
-      const downloadReport = document.getElementById("downloadReport");
-      const reportOut = document.getElementById("reportOut");
-
-      const exportJSON = () => {
-        const blob = new Blob([JSON.stringify(state, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "pfd-backup-" + new Date().toISOString() + ".json";
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      exportBtn.addEventListener("click", exportJSON);
-      backupBtn.addEventListener("click", exportJSON);
-
-      importBtn.addEventListener("click", () => fileInput.click());
-      restoreBtn.addEventListener("click", () => fileInput.click());
-
-      fileInput.addEventListener("change", (ev) => {
-        const f = ev.target.files && ev.target.files[0];
-        if (!f) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const parsed = JSON.parse(e.target.result);
-            // minimal validation
-            if (typeof parsed !== "object") throw "invalid";
-            state = Object.assign({}, defaultState, parsed);
-            writeState(state);
-            renderAll();
-            alert("Import successful");
-          } catch (err) {
-            alert("Failed to import: " + err);
-          }
-        };
-        reader.readAsText(f);
-        fileInput.value = "";
-      });
-
-      clearAllData.addEventListener("click", () => {
-        if (confirm("Clear ALL local data? This cannot be undone.")) {
-          state = JSON.parse(JSON.stringify(defaultState));
-          writeState(state);
-          renderAll();
-        }
-      });
-
-      function addAccountHandler() {
-        const name = newAcctName.value.trim();
-        const bal = Number(newAcctBalance.value) || 0;
-        if (!name) {
-          alert("Account name required");
-          return;
-        }
-        state.accounts.push({ id: uid(), name, balance: bal });
-        writeState(state);
-        renderAll();
-        newAcctName.value = "";
-        newAcctBalance.value = "";
-      }
-      addAccount.addEventListener("click", addAccountHandler);
-
-      function addGoalHandler() {
-        const title = goalName.value.trim();
-        const target = Number(goalTarget.value) || 0;
-        if (!title || target <= 0) {
-          alert("Goal title & positive target required");
-          return;
-        }
-        state.goals.push({ id: uid(), title, target, saved: 0 });
-        writeState(state);
-        renderAll();
-        goalName.value = "";
-        goalTarget.value = "";
-      }
-      addGoal.addEventListener("click", addGoalHandler);
-
-      function addBudgetHandler() {
-        const cat = budgetCategory.value.trim();
-        const amt = Number(budgetAmount.value) || 0;
-        if (!cat || amt <= 0) {
-          alert("Category & positive amount required");
-          return;
-        }
-        state.budgets.push({
-          id: uid(),
-          category: cat.toLowerCase(),
-          amount: amt,
-        });
-        writeState(state);
-        renderAll();
-        budgetCategory.value = "";
-        budgetAmount.value = "";
-      }
-      addBudget.addEventListener("click", addBudgetHandler);
-
-      function addBillHandler() {
-        const name = billName.value.trim();
-        const amt = Number(billAmount.value) || 0;
-        const due = billDue.value;
-        if (!name || amt <= 0 || !due) {
-          alert("All bill fields required");
-          return;
-        }
-        state.bills.push({ id: uid(), name, amount: amt, due });
-        writeState(state);
-        renderAll();
-        billName.value = "";
-        billAmount.value = "";
-        billDue.value = "";
-      }
-      addBill.addEventListener("click", addBillHandler);
-
-      txForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const type = document.getElementById("txType").value;
-        const amount = Number(document.getElementById("txAmount").value) || 0;
-        let date = document.getElementById("txDate").value;
-        if (!date) date = new Date().toISOString().slice(0, 10);
-        const accountId = txAccount.value || null;
-        const category =
-          document.getElementById("txCategory").value.trim() || "uncategorized";
-        const payee = document.getElementById("txPayee").value.trim() || "";
-        const note = document.getElementById("txNote").value.trim() || "";
-        if (amount <= 0) {
-          alert("Amount must be > 0");
-          return;
-        }
-
-        const tx = {
-          id: uid(),
-          type,
-          amount,
-          date,
-          accountId,
-          category: category.toLowerCase(),
-          payee,
-          note,
-          createdAt: new Date().toISOString(),
-        };
-        state.transactions.push(tx);
-
-        // update account balance if account chosen
-        if (accountId) {
-          const acc = state.accounts.find((a) => a.id === accountId);
-          if (acc) {
-            acc.balance += type === "income" ? amount : -amount;
-          }
-        }
-
-        // if it's income, add to goals saved? we won't auto-assign — just recalc when rendering
-        writeState(state);
-        renderAll();
-        txForm.reset();
-      });
-
-      function deleteTx(id) {
-        if (!confirm("Delete this transaction?")) return;
-        state.transactions = state.transactions.filter((t) => t.id !== id);
-        writeState(state);
-        renderAll();
-      }
-
-      function renderAccounts() {
-        // populate account selects and list
-        txAccount.innerHTML = '<option value="">(No account)</option>';
-        filterAccount.innerHTML = '<option value="all">All Accounts</option>';
-        accountsList.innerHTML = "";
-        if (state.accounts.length === 0) {
-          accountsList.innerHTML =
-            '<div class="empty">No accounts yet — add one.</div>';
-        }
-        state.accounts.forEach((a) => {
-          const opt = document.createElement("option");
-          opt.value = a.id;
-          opt.textContent = a.name;
-          txAccount.appendChild(opt);
-          const opt2 = document.createElement("option");
-          opt2.value = a.id;
-          opt2.textContent = a.name;
-          filterAccount.appendChild(opt2);
-
-          const div = document.createElement("div");
-          div.className = "acct-item";
-          div.innerHTML = `<div><div style="font-weight:700">${
-            a.name
-          }</div><div class="muted small">${fmt(
-            a.balance
-          )}</div></div><div class="row"><button class="pill" data-id="${
-            a.id
-          }">Edit</button><button class="pill danger" data-del="${
-            a.id
-          }">Del</button></div>`;
-          accountsList.appendChild(div);
-        });
-
-        // account actions
-        accountsList.querySelectorAll("[data-del]").forEach((btn) =>
-          btn.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-del");
-            if (!confirm("Delete account and its transactions?")) return;
-            state.accounts = state.accounts.filter((ac) => ac.id !== id);
-            state.transactions = state.transactions.filter(
-              (tx) => tx.accountId !== id
-            );
-            writeState(state);
-            renderAll();
-          })
-        );
-
-        accountsList.querySelectorAll("[data-id]").forEach((btn) =>
-          btn.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-id");
-            const account = state.accounts.find((a) => a.id === id);
-            if (!account) return;
-
-            const newName = prompt("Edit account name:", account.name);
-            if (newName === null) return; // user cancelled
-
-            const newBalance = prompt("Edit account balance:", account.balance);
-            if (newBalance === null) return; // user cancelled
-
-            const balanceNum = Number(newBalance);
-            if (isNaN(balanceNum)) {
-              alert("Invalid balance amount");
-              return;
-            }
-
-            if (newName.trim()) {
-              account.name = newName.trim();
-              account.balance = balanceNum;
-              writeState(state);
-              renderAll();
-            } else {
-              alert("Account name cannot be empty");
-            }
-          })
-        );
-      }
-      function renderGoals() {
-        goalsList.innerHTML = "";
-        if (state.goals.length === 0) {
-          goalsList.innerHTML =
-            '<div class="empty">No goals yet — create one.</div>';
-          return;
-        }
-        state.goals.forEach((g) => {
-          // compute saved amount by finding transactions marked for this goal? Simple: we'll allow manual add funds later. For now saved = sum of incomes with note containing goal id; but keep simple: show saved as property
-          const percent = Math.min(100, Math.round((g.saved / g.target) * 100));
-          const div = document.createElement("div");
-          div.style.marginBottom = "8px";
-          div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${
-            g.title
-          }</strong><div class="muted small">Target ${fmt(
-            g.target
-          )}</div></div><div>${fmt(
-            g.saved
-          )}</div></div><div class="progress" style="margin-top:6px"><i style="width:${percent}%"></i></div><div style="display:flex;gap:8px;margin-top:6px"><button data-id="${
-            g.id
-          }" class="pill">Add Funds</button><button data-del="${
-            g.id
-          }" class="pill danger">Delete</button></div>`;
-          goalsList.appendChild(div);
-        });
-
-        goalsList.querySelectorAll("[data-id]").forEach((b) =>
-          b.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-id");
-            const amount = prompt("Amount to add to goal?");
-            const v = Number(amount) || 0;
-            if (v <= 0) return;
-            const g = state.goals.find((x) => x.id === id);
-            if (g) {
-              g.saved = (g.saved || 0) + v;
-              writeState(state);
-              renderAll();
-            }
-          })
-        );
-        goalsList.querySelectorAll("[data-del]").forEach((b) =>
-          b.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-del");
-            if (!confirm("Delete this goal?")) return;
-            state.goals = state.goals.filter((x) => x.id !== id);
-            writeState(state);
-            renderAll();
-          })
-        );
-      }
-
-      function renderBudgets() {
-        budgetsList.innerHTML = "";
-        if (state.budgets.length === 0) {
-          budgetsList.innerHTML = '<div class="empty">No budgets yet.</div>';
-          return;
-        }
-        state.budgets.forEach((b) => {
-          // compute spent this month in that category
-          const spent = sumCategoryMonth(b.category);
-          const percent = Math.min(100, Math.round((spent / b.amount) * 100));
-          const div = document.createElement("div");
-          div.style.marginBottom = "8px";
-          div.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${
-            b.category
-          }</strong><div class="muted small">Limit ${fmt(
-            b.amount
-          )} / Spent ${fmt(
-            spent
-          )}</div></div><div>${percent}%</div></div><div class="progress" style="margin-top:6px"><i style="width:${percent}%"></i></div><div style="display:flex;gap:8px;margin-top:6px"><button data-id="${
-            b.id
-          }" class="pill">Edit</button><button data-del="${
-            b.id
-          }" class="pill danger">Delete</button></div>`;
-          budgetsList.appendChild(div);
-        });
-        budgetsList.querySelectorAll("[data-del]").forEach((b) =>
-          b.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-del");
-            if (!confirm("Delete budget?")) return;
-            state.budgets = state.budgets.filter((x) => x.id !== id);
-            writeState(state);
-            renderAll();
-          })
-        );
-        budgetsList.querySelectorAll("[data-id]").forEach((b) =>
-          b.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-id");
-            const budget = state.budgets.find((x) => x.id === id);
-            if (!budget) return;
-
-            const newCategory = prompt("Edit category:", budget.category);
-            if (newCategory === null) return; // user cancelled
-
-            const newAmount = prompt("Edit monthly limit:", budget.amount);
-            if (newAmount === null) return; // user cancelled
-
-            const amountNum = Number(newAmount);
-            if (isNaN(amountNum) || amountNum <= 0) {
-              alert("Invalid amount - must be positive number");
-              return;
-            }
-
-            if (newCategory.trim()) {
-              budget.category = newCategory.trim().toLowerCase();
-              budget.amount = amountNum;
-              writeState(state);
-              renderAll();
-            } else {
-              alert("Category cannot be empty");
-            }
-          })
-        );
-      }
-
-      function renderBills() {
-        billsList.innerHTML = "";
-        if (state.bills.length === 0) {
-          billsList.innerHTML = '<div class="empty">No bills tracked.</div>';
-          return;
-        }
-        const today = new Date().toISOString().slice(0, 10);
-        state.bills.forEach((b) => {
-          const dueSoon = b.due <= today;
-          const div = document.createElement("div");
-          div.className = "tx";
-          div.innerHTML = `<div class="meta"><div><strong>${
-            b.name
-          }</strong><div class="muted small">Due ${
-            b.due
-          }</div></div></div><div style="text-align:right"><div>${fmt(
-            b.amount
-          )}</div><div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end"><button data-pay="${
-            b.id
-          }" class="pill">Mark Paid</button><button data-del="${
-            b.id
-          }" class="pill danger">Delete</button></div></div>`;
-          billsList.appendChild(div);
-        });
-        billsList.querySelectorAll("[data-pay]").forEach((btn) =>
-          btn.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-pay");
-            const b = state.bills.find((x) => x.id === id);
-            if (!b) return; // create transaction
-            const accId = state.accounts.length ? state.accounts[0].id : null;
-            const tx = {
-              id: uid(),
-              type: "expense",
-              amount: b.amount,
-              date: new Date().toISOString().slice(0, 10),
-              accountId: accId,
-              category: "bill:" + b.name.toLowerCase(),
-              payee: b.name,
-              note: "Bill paid",
-            };
-            state.transactions.push(tx);
-            state.bills = state.bills.filter((x) => x.id !== id);
-            if (accId) {
-              const acc = state.accounts.find((a) => a.id === accId);
-              if (acc) acc.balance -= b.amount;
-            }
-            writeState(state);
-            renderAll();
-          })
-        );
-        billsList.querySelectorAll("[data-del]").forEach((btn) =>
-          btn.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-del");
-            if (!confirm("Delete bill?")) return;
-            state.bills = state.bills.filter((x) => x.id !== id);
-            writeState(state);
-            renderAll();
-          })
-        );
-      }
-
-      function sumCategoryMonth(category) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        return state.transactions
-          .filter(
-            (t) =>
-              t.category === category &&
-              new Date(t.date).getFullYear() === year &&
-              new Date(t.date).getMonth() === month
-          )
-          .reduce((s, t) => (t.type === "expense" ? s + t.amount : s), 0);
-      }
-
-      function renderTransactions() {
-        txList.innerHTML = "";
-        let txs = state.transactions
-          .slice()
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
-        const accFilter = filterAccount.value;
-        const typeFilter = filterType.value;
-        const q = searchTx.value.trim().toLowerCase();
-        if (accFilter && accFilter !== "all")
-          txs = txs.filter((t) => t.accountId === accFilter);
-        if (typeFilter && typeFilter !== "all")
-          txs = txs.filter((t) => t.type === typeFilter);
-        if (q)
-          txs = txs.filter(
-            (t) =>
-              (t.category || "").includes(q) ||
-              (t.payee || "").includes(q) ||
-              (t.note || "").includes(q)
-          );
-        if (txs.length === 0) {
-          txList.innerHTML = '<div class="empty">No transactions match.</div>';
-          return;
-        }
-        txs.forEach((t) => {
-          const div = document.createElement("div");
-          div.className = "tx";
-          const accName = t.accountId
-            ? (state.accounts.find((a) => a.id === t.accountId) || {}).name
-            : "(No account)";
-          div.innerHTML = `<div class="meta"><div style="font-weight:700">${
-            t.category
-          }</div><div class="muted small">${t.payee || accName} · ${
-            t.date
-          }</div></div><div style="text-align:right"><div style="font-weight:700">${
-            t.type === "income" ? "+" + fmt(t.amount) : "-" + fmt(t.amount)
-          }</div><div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end"><button data-id="${
-            t.id
-          }" class="pill">Edit</button><button data-del="${
-            t.id
-          }" class="pill danger">Delete</button></div></div>`;
-          txList.appendChild(div);
-        });
-        txList
-          .querySelectorAll("[data-del]")
-          .forEach((b) =>
-            b.addEventListener("click", (e) =>
-              deleteTx(e.target.getAttribute("data-del"))
-            )
-          );
-
-        // Add edit functionality for transactions
-        txList.querySelectorAll("[data-id]").forEach((b) =>
-          b.addEventListener("click", (e) => {
-            const id = e.target.getAttribute("data-id");
-            const tx = state.transactions.find((t) => t.id === id);
-            if (!tx) return;
-
-            const newAmount = prompt("Edit amount:", tx.amount);
-            if (newAmount === null) return;
-
-            const newCategory = prompt("Edit category:", tx.category);
-            if (newCategory === null) return;
-
-            const newPayee = prompt("Edit payee/source:", tx.payee || "");
-            if (newPayee === null) return;
-
-            const newNote = prompt("Edit note:", tx.note || "");
-            if (newNote === null) return;
-
-            const amountNum = Number(newAmount);
-            if (isNaN(amountNum) || amountNum <= 0) {
-              alert("Invalid amount - must be positive number");
-              return;
-            }
-
-            // Update account balance difference
-            if (tx.accountId) {
-              const acc = state.accounts.find((a) => a.id === tx.accountId);
-              if (acc) {
-                // Reverse old transaction
-                acc.balance += tx.type === "income" ? -tx.amount : tx.amount;
-                // Apply new transaction
-                acc.balance += tx.type === "income" ? amountNum : -amountNum;
-              }
-            }
-
-            tx.amount = amountNum;
-            tx.category = newCategory.trim().toLowerCase() || "uncategorized";
-            tx.payee = newPayee.trim();
-            tx.note = newNote.trim();
-
-            writeState(state);
-            renderAll();
-          })
-        );
-      }
-
-      // Charts
-      let ieChart, catChart;
-
-      function renderCharts() {
-        // prepare 6 months labels
-        const labels = [];
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          labels.push(
-            d.toLocaleString(undefined, { month: "short", year: "numeric" })
-          );
-        }
-
-        const incomeData = new Array(6).fill(0);
-        const expenseData = new Array(6).fill(0);
-        state.transactions.forEach((t) => {
-          const d = new Date(t.date);
-          const diff =
-            (now.getFullYear() - d.getFullYear()) * 12 +
-            (now.getMonth() - d.getMonth());
-          if (diff >= 0 && diff < 6) {
-            const idx = 5 - diff;
-            if (t.type === "income") incomeData[idx] += t.amount;
-            else expenseData[idx] += t.amount;
-          }
-        });
-
-        if (ieChart) ieChart.destroy();
-        ieChart = new Chart(ieChartCtx, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [
-              { label: "Income", data: incomeData, stack: "a" },
-              { label: "Expense", data: expenseData, stack: "a" },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: true } },
-            scales: { y: { beginAtZero: true } },
-          },
-        });
-
-        // category pie
-        const catMap = {};
-        state.transactions.forEach((t) => {
-          if (t.type === "expense") {
-            catMap[t.category] = (catMap[t.category] || 0) + t.amount;
-          }
-        });
-        const catLabels = Object.keys(catMap);
-        const catVals = catLabels.map((k) => catMap[k]);
-        if (catChart) catChart.destroy();
-        catChart = new Chart(catChartCtx, {
-          type: "doughnut",
-          data: { labels: catLabels, datasets: [{ data: catVals }] },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "bottom" } },
-          },
-        });
-      }
-
-      // summary calculations
-      function recalcSummary() {
-        const net =
-          state.accounts.reduce((s, a) => s + (Number(a.balance) || 0), 0) +
-          state.transactions.reduce((s, t) => {
-            // don't double count if account balance already included: we included accounts. So treat transactions only if no account.
-            return t.accountId
-              ? s
-              : t.type === "income"
-              ? s + t.amount
-              : s - t.amount;
-          }, 0);
-        netBalance.textContent = fmt(net);
-
-        // monthly income/expense: sum of transactions in current month
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const income = state.transactions
-          .filter(
-            (t) =>
-              t.type === "income" &&
-              new Date(t.date).getFullYear() === year &&
-              new Date(t.date).getMonth() === month
-          )
-          .reduce((s, t) => s + t.amount, 0);
-        const expense = state.transactions
-          .filter(
-            (t) =>
-              t.type === "expense" &&
-              new Date(t.date).getFullYear() === year &&
-              new Date(t.date).getMonth() === month
-          )
-          .reduce((s, t) => s + t.amount, 0);
-        monthlyIncome.textContent = fmt(income);
-        monthlyExpense.textContent = fmt(expense);
-
-        // update simple suggestions: check budgets exceeded
-        state.budgets.forEach((b) => {
-          const spent = sumCategoryMonth(b.category);
-          if (spent > b.amount) {
-            // notify if available
-            if (window.Notification && Notification.permission !== "denied") {
-              if (Notification.permission !== "granted")
-                Notification.requestPermission();
-              try {
-                new Notification("Budget alert", {
-                  body: `You exceeded your budget for ${b.category} (${fmt(
-                    spent
-                  )} > ${fmt(b.amount)})`,
-                });
-              } catch (e) {}
-            }
-          }
-        });
-      }
-
-      // Reports
-      genReport.addEventListener("click", () => {
-        const range = reportRange.value;
-        const now = new Date();
-        let from, to;
-        if (range === "monthly") {
-          from = new Date(now.getFullYear(), now.getMonth(), 1);
-          to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        } else if (range === "quarter") {
-          const q = Math.floor(now.getMonth() / 3);
-          from = new Date(now.getFullYear(), q * 3, 1);
-          to = new Date(now.getFullYear(), q * 3 + 3, 0);
-        } else {
-          from = new Date(now.getFullYear(), 0, 1);
-          to = new Date(now.getFullYear(), 11, 31);
-        }
-        const txs = state.transactions.filter(
-          (t) => new Date(t.date) >= from && new Date(t.date) <= to
-        );
-        const income = txs
-          .filter((t) => t.type === "income")
-          .reduce((s, t) => s + t.amount, 0);
-        const expense = txs
-          .filter((t) => t.type === "expense")
-          .reduce((s, t) => s + t.amount, 0);
-        reportOut.innerHTML = `<div class="muted small">Report range ${from
-          .toISOString()
-          .slice(0, 10)} to ${to
-          .toISOString()
-          .slice(
-            0,
-            10
-          )}</div><div style="display:flex;justify-content:space-between;margin-top:8px"><div><strong>Total Income</strong><div>${fmt(
-          income
-        )}</div></div><div><strong>Total Expense</strong><div>${fmt(
-          expense
-        )}</div></div><div><strong>Net</strong><div>${fmt(
-          income - expense
-        )}</div></div></div>`;
-      });
-
-      downloadReport.addEventListener("click", () => {
-        const html = reportOut.innerText || "No report generated.";
-        const blob = new Blob([html], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "pfd-report-" + new Date().toISOString() + ".txt";
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-
-      // export full backup handler
-      function renderAll() {
-        renderAccounts();
-        renderGoals();
-        renderBudgets();
-        renderBills();
-        renderTransactions();
-        renderCharts();
-        recalcSummary();
-      }
-
-      // initial render
-      renderAll();
-
-      // small interactions
-      document.getElementById("clearTx").addEventListener("click", () => {
-        if (confirm("Clear all transactions?")) {
-          state.transactions = [];
-          writeState(state);
-          renderAll();
-        }
-      });
-      filterAccount.addEventListener("change", renderTransactions);
-      filterType.addEventListener("change", renderTransactions);
-      searchTx.addEventListener("input", renderTransactions);
-
-      // delete transactions via right-click? (example)
-
-      // small utility: periodically check upcoming bills (every time render) and flash alert in page
-      function checkBills() {
-        const today = new Date();
-        const soon = new Date();
-        soon.setDate(today.getDate() + 3);
-        const upcoming = state.bills.filter((b) => new Date(b.due) <= soon);
-        if (upcoming.length > 0) {
-          console.log("Upcoming bills", upcoming);
-        }
-      }
-      checkBills();
-
-      window.addEventListener("beforeunload", () => writeState(state));
-    </script>
-  </body>
+    <!-- Footer -->
+    <footer>
+      🔒 All data is stored locally in your browser.
+    </footer>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
 </html>

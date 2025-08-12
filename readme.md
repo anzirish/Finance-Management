@@ -8,7 +8,7 @@ It leverages browser localStorage for data persistence and Chart.js for data vis
 Frontend
 
 ## Deployed App
-Frontend: _Add deployed link here_  
+Frontend: _https://finance-management-dashboard.netlify.app/_  
 Database: _N/A (Data stored locally in browser)_
 
 ## Directory Structure
@@ -16,10 +16,10 @@ personal-finance-dashboard/
 ├─ index.html
 
 ## Video Walkthrough of the project
-_Attach 1–3 minute walkthrough video link here_
+_https://youtu.be/O-3edMYUrNs_
 
 ## Video Walkthrough of the codebase
-_Attach 1–5 minute code walkthrough video link here_
+_https://youtu.be/QricPpUaHx8_
 
 ## Features
 - Track income and expenses with category, payee, and notes
@@ -38,12 +38,16 @@ _Attach 1–5 minute code walkthrough video link here_
 - Mobile-responsive design for accessibility across devices.
 - Budgets trigger browser notifications if exceeded (with user permission).
 
+## Screenshot
+
+![Personal Finance Dashboard Screenshot](https://drive.google.com/file/d/1j8vD5Wp4w1VGmcH3dfwO5RnOYLhFzGPM/view?usp=sharing)
+
 ## Installation & Getting started
 Simply clone/download the repository and open `index.html` in any modern browser. No installation required.
 
 ```bash
 # Clone the repository
-git clone https://github.com/anzirish/personal-finance-dashboard.git
+git clone https://github.com/anzirish/Finance-Management.git
 cd personal-finance-dashboard
 
 # Open in browser

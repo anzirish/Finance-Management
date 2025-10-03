@@ -40,7 +40,7 @@ _https://youtu.be/QricPpUaHx8_
 
 ## Screenshot
 
-![Personal Finance Dashboard Screenshot](https://drive.google.com/file/d/1j8vD5Wp4w1VGmcH3dfwO5RnOYLhFzGPM/view?usp=sharing)
+![Personal Finance Dashboard Screenshot](https://drive.google.com/uc?id=1j8vD5Wp4w1VGmcH3dfwO5RnOYLhFzGPM)
 
 ## Installation & Getting started
 Simply clone/download the repository and open `index.html` in any modern browser. No installation required.

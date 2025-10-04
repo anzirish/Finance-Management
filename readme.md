@@ -4,20 +4,16 @@ The Personal Finance Dashboard is a lightweight, browser-based finance managemen
 ## Project Type
 Frontend
 ## Deployed App
-Frontend: https://finance-management-dashboard.netlify.app/
+Frontend: https://finance-management-dashboard.netlify.app/ </br>
 Database: N/A (Data stored locally in browser)
 ## Directory Structure
 ```
 personal-finance-dashboard/
 ├─ index.html
 ├─ styles.css
-├─ script.js
+├─ app.js
 └─ README.md
 ```
-## Video Walkthrough of the project
-https://youtu.be/O-3edMYUrNs
-## Video Walkthrough of the codebase
-https://youtu.be/QricPpUaHx8
 ## Features
 - Track income and expenses with category, payee, and notes
 - Manage multiple accounts with editable balances
@@ -31,7 +27,7 @@ https://youtu.be/QricPpUaHx8
 - Browser notifications for budget alerts
 - Search and filter functionality for transactions
 ## Design Decisions or Assumptions
-- Data is stored locally in localStorage for privacy with no server required
+- Data is stored locally in localStorage for privacy, with no server required
 - Chart.js used for visualizing trends and category distributions
 - Single-page HTML, CSS, and vanilla JavaScript for minimal dependencies
 - Mobile-responsive design for accessibility across devices
@@ -56,8 +52,8 @@ open index.html
 3. Use filters and search to find transactions quickly
 4. View charts and reports for insights
 5. Export data for backup or import previously saved JSON files
-Include screenshots as necessary.
-![Personal Finance Dashboard Screenshot](https://drive.google.com/uc?id=1j8vD5Wp4w1VGmcH3dfwO5RnOYLhFzGPM)
+
+![Personal Finance Dashboard Screenshot](https://github.com/anzirish/Masai/blob/main/Screenshot%20(113).png)
 ## Credentials
 No authentication required — all features are available offline.
 ## APIs Used
